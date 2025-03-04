@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Table,
@@ -19,7 +19,7 @@ import hotelApi from '../../api/hotelApi'
 const HotelManagement = () => {
   const [hotels, setHotels] = useState([])
   const [open, setOpen] = useState(false)
-  const [hotelData, setHotelData] = useState({ name: '', address: '', price: '', rating: '', images: [] })
+  const [hotelData, setHotelData] = useState({ name: '', address: '', price: '', rating: '', image: [] })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
 
@@ -30,7 +30,6 @@ const HotelManagement = () => {
   const fetchHotels = async () => {
     try {
       const data = await hotelApi.getAll()
-      console.log(data) // Kiểm tra dữ liệu trả về
       setHotels(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách khách sạn:', error)
@@ -40,10 +39,10 @@ const HotelManagement = () => {
   const handleOpen = (hotel = null) => {
     if (hotel) {
       setHotelData(hotel)
-      setPreviewImages(hotel.images ? hotel.images.map((img) => img.url) : [])
+      setPreviewImages(hotel.image ? hotel.image.map((img) => img.url) : [])
       setEditId(hotel.id)
     } else {
-      setHotelData({ name: '', address: '', price: '', rating: '', images: [] })
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [] })
       setPreviewImages([])
       setEditId(null)
     }
@@ -64,32 +63,47 @@ const HotelManagement = () => {
     const files = Array.from(e.target.files)
     const imageURLs = files.map((file) => URL.createObjectURL(file)) // Tạo URL ảnh xem trước
     setPreviewImages(imageURLs)
-    setHotelData({ ...hotelData, images: files }) // Lưu file vào state
+    setHotelData({ ...hotelData, image: files }) // Lưu file vào state
   }
 
   const handleSubmit = async () => {
     try {
-      const formData = new FormData()
-      formData.append('name', hotelData.name)
-      formData.append('address', hotelData.address)
-      formData.append('price', hotelData.price)
-      formData.append('rating', hotelData.rating)
 
-      hotelData.images.forEach((file) => {
-        formData.append('images', file) // Gửi nhiều ảnh lên backend
-      })
+      const formData = new FormData();
+      formData.append('name', hotelData.name);
+      formData.append('address', hotelData.address);
+      formData.append('price', hotelData.price);
+      formData.append('rating', hotelData.rating);
+
+      if (hotelData?.image?.length > 0) {
+        hotelData?.image?.forEach((file, index) => {
+          formData.append(`image[${index}]`, file);
+        });
+
+      }
+
 
       if (editId) {
-        await hotelApi.update(editId, formData)
+        await hotelApi.update(editId, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       } else {
-        await hotelApi.create(formData)
+        await hotelApi.create(formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
       }
-      fetchHotels()
-      handleClose()
+
+      await fetchHotels();
+      handleClose();
     } catch (error) {
-      console.error('Lỗi khi gửi dữ liệu khách sạn:', error)
+      console.error('Lỗi khi gửi dữ liệu khách sạn:', error);
     }
-  }
+  };
+
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
@@ -122,17 +136,17 @@ const HotelManagement = () => {
           </TableHead>
           <TableBody>
             {hotels.map((hotel) => (
-              <TableRow key={hotel.id}>
+              <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
                 <TableCell>{hotel.price}</TableCell>
                 <TableCell>{hotel.rating}</TableCell>
                 <TableCell>
-                  {hotel.images &&
-                    hotel.images.map((img, index) => (
+                  {hotel.image &&
+                    hotel.image.map((img, index) => (
                       <img
                         key={index}
-                        src={img.url}
+                        src={img?.url}
                         alt={hotel.name}
                         style={{ width: 50, height: 50, marginRight: 5, borderRadius: 5 }}
                       />
@@ -142,7 +156,7 @@ const HotelManagement = () => {
                   <Button color="primary" onClick={() => handleOpen(hotel)}>
                     Sửa
                   </Button>
-                  <Button color="secondary" onClick={() => handleDelete(hotel.id)}>
+                  <Button color="secondary" onClick={() => handleDelete(hotel._id)}>
                     Xóa
                   </Button>
                 </TableCell>

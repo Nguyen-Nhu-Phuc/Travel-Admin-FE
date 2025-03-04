@@ -3,18 +3,15 @@ import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL
 
 const hotelApi = {
-  create: async (data, files) => {
-    const formData = new FormData()
+  create: async (data) => {
 
-    for (const key in data) {
-      formData.append(key, data[key])
-    }
-
-    if (files) {
-      files.forEach((file) => formData.append('files', file))
-    }
-
-    const response = await axios.post(`${API_URL}hotel/create`, formData)
+    const response = await axios.post(`${API_URL}hotel/create`, data,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
     return response.data
   },
 
@@ -34,7 +31,7 @@ const hotelApi = {
   },
 
   deleteHotel: async (id) => {
-    const response = await axios.delete(`${API_URL}hotel/${id}`)
+    const response = await axios.delete(`${API_URL}hotel/delete/${id}`)
     return response.data
   },
 
