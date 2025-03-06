@@ -119,14 +119,16 @@ const HotelManagement = () => {
 
       if (editId) {
         await hotelApi.update(editId, jsonData)
+        toast.success('Chỉnh sửa thông tin thành công!')
       } else {
         await hotelApi.create(formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
+        toast.success('Tạo khách sạn thành công!')
       }
 
       setCheck(false)
-      toast.success('Tạo khách sạn thành công!')
+
       setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination: null })
 
       await fetchHotels()
