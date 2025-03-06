@@ -19,6 +19,11 @@ import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
 import { getAllDestinations } from '../../api/destinationApi'
+import Backdrop from '@mui/material/Backdrop'
+
+import { toast, ToastContainer } from 'react-toastify'
+
+import CircularProgress from '@mui/material/CircularProgress'
 
 const HotelManagement = () => {
   const [hotels, setHotels] = useState([])
@@ -36,6 +41,7 @@ const HotelManagement = () => {
   const [previewImages, setPreviewImages] = useState([])
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState([])
+  const [check, setCheck] = useState(false)
 
   useEffect(() => {
     fetchHotels()
@@ -92,30 +98,36 @@ const HotelManagement = () => {
 
   const handleSubmit = async () => {
     try {
+      setCheck(true)
       const formData = new FormData()
-      formData.append('name', hotelData.name)
-      formData.append('address', hotelData.address)
-      formData.append('price', hotelData.price)
-      formData.append('rating', hotelData.rating)
-      if (hotelData.destination) {
-        formData.append('destination', hotelData.destination._id)
+
+      const jsonData = {
+        name: hotelData.name,
+        address: hotelData.address,
+        price: hotelData.price,
+        rating: +hotelData.rating,
+        destination_id: hotelData.destination ? hotelData.destination._id : null
       }
+
+      formData.append('data', JSON.stringify(jsonData))
 
       if (hotelData.image.length > 0) {
         hotelData.image.forEach((file, index) => {
-          formData.append(`image[${index}]`, file)
+          formData.append('image', file)
         })
       }
 
       if (editId) {
-        await hotelApi.update(editId, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        await hotelApi.update(editId, jsonData)
       } else {
         await hotelApi.create(formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
       }
+
+      setCheck(false)
+      toast.success('Tạo khách sạn thành công!')
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination: null })
 
       await fetchHotels()
       handleClose()
@@ -187,6 +199,16 @@ const HotelManagement = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose}>
+        <div>
+          <Backdrop
+            sx={(theme) => ({ color: '#199c51', zIndex: 999999 })}
+            open={check}
+
+            // onClick={!check}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+        </div>
         <DialogTitle>{editId ? 'Chỉnh sửa khách sạn' : 'Thêm khách sạn'}</DialogTitle>
         <DialogContent>
           <TextField label="Tên" name="name" value={hotelData.name} onChange={handleChange} fullWidth margin="dense" />
@@ -214,6 +236,7 @@ const HotelManagement = () => {
             fullWidth
             margin="dense"
           />
+          <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
           <Autocomplete
             options={destinations}
             getOptionLabel={(option) => option.name}
@@ -246,6 +269,7 @@ const HotelManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ToastContainer></ToastContainer>
     </div>
   )
 }
