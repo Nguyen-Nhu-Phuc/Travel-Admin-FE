@@ -15,14 +15,14 @@ const createDestination = async (data, files) => {
       files.forEach((file) => formData.append('files', file))
     }
 
-    const response = await axios.post(`${API_URL}detination/create`, formData, {
+    const response = await axios.post(`${API_URL}destination/create`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
     return response.data
   } catch (error) {
-    console.error('Error creating destination', error)
+    console.error('Error creating destination:', error.response?.data || error.message)
     throw error
   }
 }
@@ -30,10 +30,10 @@ const createDestination = async (data, files) => {
 // Lấy tất cả các địa điểm
 const getAllDestinations = async () => {
   try {
-    const response = await axios.get(`${API_URL}detination/getAll`)
+    const response = await axios.get(`${API_URL}destination/getAll`)
     return response.data
   } catch (error) {
-    console.error('Error fetching destinations', error)
+    console.error('Error fetching destinations:', error.response?.data || error.message)
     throw error
   }
 }
@@ -41,10 +41,10 @@ const getAllDestinations = async () => {
 // Lấy thông tin một địa điểm theo ID
 const getDestinationById = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}detination/getById/${id}`)
+    const response = await axios.get(`${API_URL}destination/getById/${id}`)
     return response.data
   } catch (error) {
-    console.error('Error fetching destination by ID', error)
+    console.error('Error fetching destination by ID:', error.response?.data || error.message)
     throw error
   }
 }
@@ -52,10 +52,10 @@ const getDestinationById = async (id) => {
 // Cập nhật thông tin một địa điểm
 const updateDestination = async (id, data) => {
   try {
-    const response = await axios.put(`${API_URL}detination/updateDestination/${id}`, data)
+    const response = await axios.put(`${API_URL}destination/updateDestination/${id}`, data)
     return response.data
   } catch (error) {
-    console.error('Error updating destination', error)
+    console.error('Error updating destination:', error.response?.data || error.message)
     throw error
   }
 }
@@ -63,10 +63,10 @@ const updateDestination = async (id, data) => {
 // Xóa địa điểm
 const deleteDestination = async (id) => {
   try {
-    const response = await axios.delete(`${API_URL}detination/deleteDestination/${id}`)
+    const response = await axios.delete(`${API_URL}destination/deleteDestination/${id}`)
     return response.data
   } catch (error) {
-    console.error('Error deleting destination', error)
+    console.error('Error deleting destination:', error.response?.data || error.message)
     throw error
   }
 }
@@ -77,14 +77,14 @@ const updateImageDestination = async (id, files) => {
     const formData = new FormData()
     files.forEach((file) => formData.append('files', file))
 
-    const response = await axios.post(`${API_URL}detination/updateImageDestination/${id}`, formData, {
+    const response = await axios.post(`${API_URL}destination/updateImageDestination/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
     return response.data
   } catch (error) {
-    console.error('Error updating image for destination', error)
+    console.error('Error updating image for destination:', error.response?.data || error.message)
     throw error
   }
 }
@@ -92,10 +92,10 @@ const updateImageDestination = async (id, files) => {
 // Xóa ảnh của địa điểm
 const deleteImageDestination = async (id, imageId) => {
   try {
-    const response = await axios.delete(`${API_URL}detination/deleteImageDestination/${id}/${imageId}`)
+    const response = await axios.delete(`${API_URL}destination/deleteImageDestination/${id}/${imageId}`)
     return response.data
   } catch (error) {
-    console.error('Error deleting image from destination', error)
+    console.error('Error deleting image from destination:', error.response?.data || error.message)
     throw error
   }
 }

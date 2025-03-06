@@ -53,7 +53,7 @@ const HotelManagement = () => {
 
   const fetchDestinations = async () => {
     try {
-      const data = await destinationApi.getAll()
+      const data = await destinationApi.getAllDestinations()
       setDestinations(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách địa điểm:', error)
@@ -172,16 +172,6 @@ const HotelManagement = () => {
                     </IconButton>
                   )}
                 </TableCell>
-                {/* <TableCell>
-                  {hotel.image?.map((img, index) => (
-                    <img
-                      key={index}
-                      src={img?.url}
-                      alt={hotel.name}
-                      style={{ width: 50, height: 50, marginRight: 5, borderRadius: 5 }}
-                    />
-                  ))}
-                </TableCell> */}
                 <TableCell>
                   <Button color="primary" onClick={() => handleOpen(hotel)}>
                     Sửa
