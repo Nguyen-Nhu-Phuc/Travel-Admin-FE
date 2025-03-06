@@ -134,6 +134,8 @@ const HotelManagement = () => {
       await fetchHotels()
       handleClose()
     } catch (error) {
+      setCheck(false)
+      toast.error('Có lỗi xảy ra!')
       console.error('Lỗi khi gửi dữ liệu khách sạn:', error)
     }
   }
