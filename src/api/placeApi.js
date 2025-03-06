@@ -1,115 +1,49 @@
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL
-
-const createPlace = async (data, files) => {
-  const formData = new FormData()
-  formData.append('destination_id', data.destination_id)
-  formData.append('name', data.name)
-  formData.append('description', data.description)
-  // Nếu có files
-  if (files) {
-    files.forEach((file) => {
-      formData.append('files', file)
-    })
-  }
-
-  try {
-    const response = await axios.post(`${API_URL}place/create`, formData, {
+const placelApi = {
+  create: async (data) => {
+    const response = await axios.post(`${API_URL}place/create`, data, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
-    return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
 
-const getAllPlaces = async () => {
-  try {
+    return response.data
+  },
+
+  getAll: async () => {
     const response = await axios.get(`${API_URL}place/getAll`)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
+  },
 
-const getPlaceById = async (id) => {
-  try {
-    const response = await axios.get(`${API_URL}place/getById/${id}`)
+  getById: async (id) => {
+    const response = await axios.get(`${API_URL}place/${id}`)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
+  },
 
-const updatePlace = async (id, data, files) => {
-  const formData = new FormData()
-  formData.append('destination_id', data.destination_id)
-  formData.append('name', data.name)
-  formData.append('description', data.description)
-  // Nếu có files
-  if (files) {
-    files.forEach((file) => {
-      formData.append('files', file)
-    })
-  }
-
-  try {
-    const response = await axios.put(`${API_URL}place/update/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+  update: async (id, data) => {
+    const response = await axios.patch(`${API_URL}place/update/${id}`, data)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
+  },
 
-const deletePlace = async (id) => {
-  try {
-    const response = await axios.delete(`${API_URL}place/deletePlace/${id}`)
+  deletePlace: async (id) => {
+    const response = await axios.delete(`${API_URL}place/delete/${id}`)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
+  },
 
-const deleteImageFromPlace = async (placeId, imageId) => {
-  try {
-    const response = await axios.delete(`${API_URL}place/deleteImagePlace/${placeId}/${imageId}`)
+  deleteImagePlace: async (placeId, imageId) => {
+    const response = await axios.delete(`${API_URL}place/${placeId}/images/${imageId}`)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
-  }
-}
+  },
 
-const updateImageForPlace = async (placeId, files) => {
-  const formData = new FormData()
-  files.forEach((file) => {
-    formData.append('files', file)
-  })
+  updateImageHotel: async (id, files) => {
+    const formData = new FormData()
+    files.forEach((file) => formData.append('files', file))
 
-  try {
-    const response = await axios.put(`${API_URL}place/updateImagePlace/${placeId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    const response = await axios.put(`${API_URL}place/${id}/images`, formData)
     return response.data
-  } catch (error) {
-    throw error.response ? error.response.data : error.message
   }
 }
 
-export const placeApi = {
-  createPlace,
-  getAllPlaces,
-  getPlaceById,
-  updatePlace,
-  deletePlace,
-  deleteImageFromPlace,
-  updateImageForPlace
-}
+export default placelApi

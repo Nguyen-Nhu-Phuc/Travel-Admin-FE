@@ -35,7 +35,7 @@ const HotelManagement = () => {
     price: '',
     rating: '',
     image: [],
-    destination: null
+    destination_id: null
   })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
@@ -47,6 +47,8 @@ const HotelManagement = () => {
     fetchHotels()
     fetchDestinations()
   }, [])
+
+  useEffect(() => {}, [hotelData])
 
   const fetchHotels = async () => {
     try {
@@ -68,11 +70,11 @@ const HotelManagement = () => {
 
   const handleOpen = (hotel = null) => {
     if (hotel) {
-      setHotelData({ ...hotel, destination: hotel.destination || null })
+      setHotelData({ ...hotel, destination_id: hotel.destination_id || null })
       setPreviewImages(hotel.image ? hotel.image.map((img) => img.url) : [])
       setEditId(hotel._id)
     } else {
-      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination: null })
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination_id: null })
       setPreviewImages([])
       setEditId(null)
     }
@@ -106,7 +108,7 @@ const HotelManagement = () => {
         address: hotelData.address,
         price: hotelData.price,
         rating: +hotelData.rating,
-        destination_id: hotelData.destination ? hotelData.destination._id : null
+        destination_id: hotelData.destination_id ? hotelData.destination_id._id : null
       }
 
       formData.append('data', JSON.stringify(jsonData))
@@ -129,7 +131,7 @@ const HotelManagement = () => {
 
       setCheck(false)
 
-      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination: null })
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination_id: null })
 
       await fetchHotels()
       handleClose()
@@ -240,12 +242,15 @@ const HotelManagement = () => {
             fullWidth
             margin="dense"
           />
-          <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
+          {!editId && (
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
+          )}
           <Autocomplete
             options={destinations}
-            getOptionLabel={(option) => option.name}
-            value={hotelData.destination}
-            onChange={(event, newValue) => setHotelData({ ...hotelData, destination: newValue })}
+            getOptionLabel={(option) => option?.name}
+            defaultValue={hotelData?.destination_id?._id || null}
+            value={hotelData?.destination_id || null}
+            onChange={(event, newValue) => setHotelData({ ...hotelData, destination_id: newValue })}
             renderInput={(params, index) => (
               <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
             )}
