@@ -28,9 +28,10 @@ const createDestination = async (data, files) => {
 }
 
 // Lấy tất cả các địa điểm
-const getAllDestinations = async () => {
+export const getAllDestinations = async () => {
   try {
-    const response = await axios.get(`${API_URL}destination/getAll`)
+    const response = await axios.get(`${API_URL}destination/getAlldestination`)
+
     return response.data
   } catch (error) {
     console.error('Error fetching destinations:', error.response?.data || error.message)

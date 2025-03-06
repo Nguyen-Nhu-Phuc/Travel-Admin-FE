@@ -18,7 +18,7 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
-import destinationApi from '../../api/destinationApi'
+import { getAllDestinations } from '../../api/destinationApi'
 
 const HotelManagement = () => {
   const [hotels, setHotels] = useState([])
@@ -53,7 +53,7 @@ const HotelManagement = () => {
 
   const fetchDestinations = async () => {
     try {
-      const data = await destinationApi.getAllDestinations()
+      const data = await getAllDestinations()
       setDestinations(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách địa điểm:', error)
@@ -219,7 +219,9 @@ const HotelManagement = () => {
             getOptionLabel={(option) => option.name}
             value={hotelData.destination}
             onChange={(event, newValue) => setHotelData({ ...hotelData, destination: newValue })}
-            renderInput={(params) => <TextField {...params} label="Chọn địa điểm" margin="dense" fullWidth />}
+            renderInput={(params, index) => (
+              <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
+            )}
           />
         </DialogContent>
         <DialogActions>
