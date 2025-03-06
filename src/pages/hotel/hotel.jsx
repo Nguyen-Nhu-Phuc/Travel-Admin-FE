@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   Button,
   Table,
@@ -12,8 +12,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
+  IconButton
 } from '@mui/material'
+import { IconEye } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
 
 const HotelManagement = () => {
@@ -22,6 +24,8 @@ const HotelManagement = () => {
   const [hotelData, setHotelData] = useState({ name: '', address: '', price: '', rating: '', image: [] })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
+  const [imageDialogOpen, setImageDialogOpen] = useState(false)
+  const [selectedImages, setSelectedImages] = useState([])
 
   useEffect(() => {
     fetchHotels()
@@ -68,42 +72,38 @@ const HotelManagement = () => {
 
   const handleSubmit = async () => {
     try {
-
-      const formData = new FormData();
-      formData.append('name', hotelData.name);
-      formData.append('address', hotelData.address);
-      formData.append('price', hotelData.price);
-      formData.append('rating', hotelData.rating);
+      const formData = new FormData()
+      formData.append('name', hotelData.name)
+      formData.append('address', hotelData.address)
+      formData.append('price', hotelData.price)
+      formData.append('rating', hotelData.rating)
 
       if (hotelData?.image?.length > 0) {
         hotelData?.image?.forEach((file, index) => {
-          formData.append(`image[${index}]`, file);
-        });
-
+          formData.append(`image[${index}]`, file)
+        })
       }
-
 
       if (editId) {
         await hotelApi.update(editId, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+            'Content-Type': 'multipart/form-data'
+          }
+        })
       } else {
         await hotelApi.create(formData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+            'Content-Type': 'multipart/form-data'
+          }
+        })
       }
 
-      await fetchHotels();
-      handleClose();
+      await fetchHotels()
+      handleClose()
     } catch (error) {
-      console.error('Lỗi khi gửi dữ liệu khách sạn:', error);
+      console.error('Lỗi khi gửi dữ liệu khách sạn:', error)
     }
-  };
-
+  }
 
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
@@ -116,12 +116,19 @@ const HotelManagement = () => {
     }
   }
 
+  const handleOpenImageDialog = (images) => {
+    setSelectedImages(images)
+    setImageDialogOpen(true)
+  }
+
   return (
     <div>
       <h2>Danh Sách khách sạn</h2>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-        Thêm khách sạn
-      </Button>
+      <div style={{ marginBottom: '20px' }}>
+        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+          Thêm khách sạn
+        </Button>
+      </div>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -139,18 +146,16 @@ const HotelManagement = () => {
               <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
-                <TableCell>{hotel.price}</TableCell>
+                <TableCell>
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price)}
+                </TableCell>
                 <TableCell>{hotel.rating}</TableCell>
                 <TableCell>
-                  {hotel.image &&
-                    hotel.image.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img?.url}
-                        alt={hotel.name}
-                        style={{ width: 50, height: 50, marginRight: 5, borderRadius: 5 }}
-                      />
-                    ))}
+                  {hotel.image && hotel.image.length > 0 && (
+                    <IconButton onClick={() => handleOpenImageDialog(hotel.image.map((img) => img.url))}>
+                      <IconEye />
+                    </IconButton>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Button color="primary" onClick={() => handleOpen(hotel)}>
@@ -194,8 +199,6 @@ const HotelManagement = () => {
             fullWidth
             margin="dense"
           />
-
-          {/* Upload nhiều hình ảnh */}
           <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
           <div style={{ display: 'flex', marginTop: '10px' }}>
             {previewImages.map((img, index) => (
@@ -214,6 +217,21 @@ const HotelManagement = () => {
           </Button>
           <Button onClick={handleSubmit} color="primary">
             Lưu
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog hiển thị ảnh */}
+      <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
+        <DialogTitle>Hình ảnh khách sạn</DialogTitle>
+        <DialogContent>
+          {selectedImages.map((img, index) => (
+            <img key={index} src={img} alt="hotel" style={{ width: '100%', marginBottom: 10, borderRadius: 5 }} />
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setImageDialogOpen(false)} color="primary">
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>
