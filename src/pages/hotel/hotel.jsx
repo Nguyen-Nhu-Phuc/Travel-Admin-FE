@@ -15,13 +15,23 @@ import {
   TextField,
   IconButton
 } from '@mui/material'
+import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
+import destinationApi from '../../api/destinationApi'
 
 const HotelManagement = () => {
   const [hotels, setHotels] = useState([])
+  const [destinations, setDestinations] = useState([])
   const [open, setOpen] = useState(false)
-  const [hotelData, setHotelData] = useState({ name: '', address: '', price: '', rating: '', image: [] })
+  const [hotelData, setHotelData] = useState({
+    name: '',
+    address: '',
+    price: '',
+    rating: '',
+    image: [],
+    destination: null
+  })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
@@ -29,6 +39,7 @@ const HotelManagement = () => {
 
   useEffect(() => {
     fetchHotels()
+    fetchDestinations()
   }, [])
 
   const fetchHotels = async () => {
@@ -40,13 +51,22 @@ const HotelManagement = () => {
     }
   }
 
+  const fetchDestinations = async () => {
+    try {
+      const data = await destinationApi.getAll()
+      setDestinations(data)
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách địa điểm:', error)
+    }
+  }
+
   const handleOpen = (hotel = null) => {
     if (hotel) {
-      setHotelData(hotel)
+      setHotelData({ ...hotel, destination: hotel.destination || null })
       setPreviewImages(hotel.image ? hotel.image.map((img) => img.url) : [])
-      setEditId(hotel.id)
+      setEditId(hotel._id)
     } else {
-      setHotelData({ name: '', address: '', price: '', rating: '', image: [] })
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination: null })
       setPreviewImages([])
       setEditId(null)
     }
@@ -65,9 +85,9 @@ const HotelManagement = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files)
-    const imageURLs = files.map((file) => URL.createObjectURL(file)) // Tạo URL ảnh xem trước
+    const imageURLs = files.map((file) => URL.createObjectURL(file))
     setPreviewImages(imageURLs)
-    setHotelData({ ...hotelData, image: files }) // Lưu file vào state
+    setHotelData({ ...hotelData, image: files })
   }
 
   const handleSubmit = async () => {
@@ -77,24 +97,23 @@ const HotelManagement = () => {
       formData.append('address', hotelData.address)
       formData.append('price', hotelData.price)
       formData.append('rating', hotelData.rating)
+      if (hotelData.destination) {
+        formData.append('destination', hotelData.destination._id)
+      }
 
-      if (hotelData?.image?.length > 0) {
-        hotelData?.image?.forEach((file, index) => {
+      if (hotelData.image.length > 0) {
+        hotelData.image.forEach((file, index) => {
           formData.append(`image[${index}]`, file)
         })
       }
 
       if (editId) {
         await hotelApi.update(editId, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         })
       } else {
         await hotelApi.create(formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         })
       }
 
@@ -124,11 +143,9 @@ const HotelManagement = () => {
   return (
     <div>
       <h2>Danh Sách khách sạn</h2>
-      <div style={{ marginBottom: '20px' }}>
-        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          Thêm khách sạn
-        </Button>
-      </div>
+      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+        Thêm khách sạn
+      </Button>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -146,9 +163,7 @@ const HotelManagement = () => {
               <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price)}
-                </TableCell>
+                <TableCell>{hotel.price}</TableCell>
                 <TableCell>{hotel.rating}</TableCell>
                 <TableCell>
                   {hotel.image && hotel.image.length > 0 && (
@@ -157,6 +172,16 @@ const HotelManagement = () => {
                     </IconButton>
                   )}
                 </TableCell>
+                {/* <TableCell>
+                  {hotel.image?.map((img, index) => (
+                    <img
+                      key={index}
+                      src={img?.url}
+                      alt={hotel.name}
+                      style={{ width: 50, height: 50, marginRight: 5, borderRadius: 5 }}
+                    />
+                  ))}
+                </TableCell> */}
                 <TableCell>
                   <Button color="primary" onClick={() => handleOpen(hotel)}>
                     Sửa
@@ -199,17 +224,13 @@ const HotelManagement = () => {
             fullWidth
             margin="dense"
           />
-          <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
-          <div style={{ display: 'flex', marginTop: '10px' }}>
-            {previewImages.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt="preview"
-                style={{ width: 70, height: 70, marginRight: 5, borderRadius: 5 }}
-              />
-            ))}
-          </div>
+          <Autocomplete
+            options={destinations}
+            getOptionLabel={(option) => option.name}
+            value={hotelData.destination}
+            onChange={(event, newValue) => setHotelData({ ...hotelData, destination: newValue })}
+            renderInput={(params) => <TextField {...params} label="Chọn địa điểm" margin="dense" fullWidth />}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="secondary">
@@ -220,8 +241,6 @@ const HotelManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Dialog hiển thị ảnh */}
       <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
         <DialogTitle>Hình ảnh khách sạn</DialogTitle>
         <DialogContent>
@@ -238,5 +257,4 @@ const HotelManagement = () => {
     </div>
   )
 }
-
 export default HotelManagement
