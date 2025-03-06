@@ -4,16 +4,15 @@ const API_URL = import.meta.env.VITE_API_URL
 
 const hotelApi = {
   create: async (data) => {
+    const response = await axios.post(`${API_URL}hotel/create`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-    const response = await axios.post(`${API_URL}hotel/create`, data,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
-    return response.data
+    return response.data;
   },
+
 
   getAll: async () => {
     const response = await axios.get(`${API_URL}hotel/getALL`)
