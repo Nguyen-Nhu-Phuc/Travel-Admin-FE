@@ -1,32 +1,32 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 
-import useMediaQuery from '@mui/material/useMediaQuery';
-import Toolbar from '@mui/material/Toolbar';
-import Box from '@mui/material/Box';
+import useMediaQuery from '@mui/material/useMediaQuery'
+import Toolbar from '@mui/material/Toolbar'
+import Box from '@mui/material/Box'
 
 // project imports
-import Drawer from './Drawer';
-import Header from './Header';
-import Footer from './Footer';
-import Loader from 'components/Loader';
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
+import Drawer from './Drawer'
+import Header from './Header'
+import Footer from './Footer'
+import Loader from 'components/Loader'
+import Breadcrumbs from 'components/@extended/Breadcrumbs'
 
-import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu'
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
-  const { pathname } = useLocation();
-  const { menuMasterLoading } = useGetMenuMaster();
-  const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+  const { pathname } = useLocation()
+  const { menuMasterLoading } = useGetMenuMaster()
+  const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'))
 
   // set media wise responsive drawer
   useEffect(() => {
-    handlerDrawerOpen(!downXL);
-  }, [downXL]);
+    handlerDrawerOpen(!downXL)
+  }, [downXL])
 
-  if (menuMasterLoading) return <Loader />;
+  if (menuMasterLoading) return <Loader />
 
   return (
     <Box sx={{ display: 'flex', width: '100%' }}>
@@ -50,5 +50,5 @@ export default function DashboardLayout() {
         </Box>
       </Box>
     </Box>
-  );
+  )
 }
