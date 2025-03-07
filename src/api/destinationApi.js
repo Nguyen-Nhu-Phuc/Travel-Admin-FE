@@ -12,7 +12,7 @@ const destinationApi = {
     return response.data
   },
 
-  getAll: async () => {
+  getAllDestinations: async () => {
     const response = await axios.get(`${API_URL}destination/getAlldestination`)
     return response.data
   },
@@ -28,7 +28,7 @@ const destinationApi = {
   },
 
   delete: async (id) => {
-    const response = await axios.delete(`${API_URL}estination/delete/${id}`)
+    const response = await axios.delete(`${API_URL}destination/delete/${id}`)
     return response.data
   },
 
