@@ -32,16 +32,20 @@ const placelApi = {
     return response.data
   },
 
-  deleteImagePlace: async (placeId, imageId) => {
-    const response = await axios.delete(`${API_URL}place/${placeId}/images/${imageId}`)
+  deleteImagePlace: async (id, imageId) => {
+    const response = await axios.delete(`${API_URL}place/deleteImage/${id}/${imageId}`)
     return response.data
   },
 
-  updateImageHotel: async (id, files) => {
+  updateImageplace: async (id, files) => {
     const formData = new FormData()
-    files.forEach((file) => formData.append('files', file))
+    files.forEach((file) => formData.append('image', file))
 
-    const response = await axios.put(`${API_URL}place/${id}/images`, formData)
+    const response = await axios.patch(`${API_URL}place//updateImage/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return response.data
   }
 }

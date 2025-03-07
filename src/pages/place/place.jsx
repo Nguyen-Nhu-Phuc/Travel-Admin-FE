@@ -41,14 +41,17 @@ const PlaceManagement = () => {
   const [selectedImages, setSelectedImages] = useState([])
   const [check, setCheck] = useState(false)
 
+  const [selectedImagesToDelete, setSelectedImagesToDelete] = useState([]) // Lưu ID ảnh cần xóa
+  const [newImages, setNewImages] = useState([]) // Lưu ảnh mới
+
   useEffect(() => {
-    fetchPlace()
+    fetchPlaces()
     fetchDestinations()
   }, [])
 
   useEffect(() => {}, [placeData])
 
-  const fetchPlace = async () => {
+  const fetchPlaces = async () => {
     try {
       const data = await placeApi.getAll()
       setPlaces(data)
@@ -129,7 +132,7 @@ const PlaceManagement = () => {
 
       setPlaceData({ name: '', address: '', price: '', rating: '', image: [], destination_id: null })
 
-      await fetchPlace()
+      await fetchPlaces()
       handleClose()
     } catch (error) {
       setCheck(false)
@@ -142,17 +145,75 @@ const PlaceManagement = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
       try {
         await placeApi.deletePlace(id)
-        fetchPlace()
+        fetchPlaces()
+        toast.success('Xóa khách điểm đến thành công!')
       } catch (error) {
-        console.error('Lỗi khi xóa khách sạn:', error)
+        console.error('Lỗi khi xóa điểm đến:', error)
+        toast.error('Có lỗi xảy ra khi xóa điểm đến!')
       }
     }
   }
 
-  const handleOpenImageDialog = (images) => {
+  const handleOpenImageDialog = (images, id) => {
+    setEditId(id)
     setSelectedImages(images)
     setImageDialogOpen(true)
   }
+
+  // ===========================
+
+  const handleFileUpload = (e) => {
+    setNewImages(Array.from(e.target.files))
+  }
+
+  const handleDeleteSelectedImages = async () => {
+    if (!selectedImagesToDelete.length || !editId) {
+      toast.warn('Vui lòng chọn ít nhất một ảnh để xóa!')
+      return
+    }
+
+    try {
+      for (const imageId of selectedImagesToDelete) {
+        await placeApi.deleteImagePlace(editId, imageId)
+      }
+
+      toast.success(`Đã xóa ${selectedImagesToDelete.length} ảnh thành công!`)
+      fetchPlaces() // Cập nhật danh sách khách sạn
+      setSelectedImagesToDelete([])
+      setImageDialogOpen(false)
+    } catch (error) {
+      console.error('Lỗi khi xóa ảnh:', error)
+      toast.error('Có lỗi xảy ra khi xóa ảnh!')
+    }
+  }
+
+  const handleUploadNewImages = async () => {
+    console.log('newImages:', newImages)
+
+    if (newImages.length == 0) {
+      toast.warn('Vui lòng chọn ảnh để tải lên!')
+      return
+    }
+
+    try {
+      await placeApi.updateImageplace(editId, newImages)
+      toast.success(`Đã thêm ${newImages.length} ảnh thành công!`)
+
+      fetchPlaces() // Cập nhật danh sách khách sạn
+      setNewImages([])
+      setImageDialogOpen(false)
+    } catch (error) {
+      console.error('Lỗi khi thêm ảnh:', error)
+      toast.error('Có lỗi xảy ra khi thêm ảnh!')
+    }
+  }
+
+  const handleSelectImageToDelete = (imageId) => {
+    setSelectedImagesToDelete((prev) =>
+      prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]
+    )
+  }
+  // ===========================
 
   return (
     <div>
@@ -177,7 +238,7 @@ const PlaceManagement = () => {
                 <TableCell>{place.description}</TableCell>
                 <TableCell>
                   {place.image && place.image.length > 0 && (
-                    <IconButton onClick={() => handleOpenImageDialog(place.image.map((img) => img.url))}>
+                    <IconButton onClick={() => handleOpenImageDialog(place.image, place._id)}>
                       <IconEye />
                     </IconButton>
                   )}
@@ -236,17 +297,34 @@ const PlaceManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
-        <DialogTitle>Hình ảnh địa điểm</DialogTitle>
+        <DialogTitle>Hình ảnh điểm đến</DialogTitle>
         <DialogContent>
-          {selectedImages.map((img, index) => (
-            <img key={index} src={img} alt="place" style={{ width: '100%', marginBottom: 10, borderRadius: 5 }} />
+          {selectedImages.map((img) => (
+            <div key={img._id} style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <input
+                type="checkbox"
+                checked={selectedImagesToDelete.includes(img._id)}
+                onChange={() => handleSelectImageToDelete(img._id)}
+              />
+              <img src={img.url} alt="place" style={{ width: '100%', marginLeft: 10, borderRadius: 5 }} />
+            </div>
           ))}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setImageDialogOpen(false)} color="primary">
-            Đóng
-          </Button>
+        <DialogActions style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <input type="file" multiple accept="image/*" onChange={handleFileUpload} />
+          <div>
+            <Button onClick={handleDeleteSelectedImages} color="secondary">
+              Xóa ảnh đã chọn
+            </Button>
+            <Button onClick={handleUploadNewImages} color="primary">
+              Thêm ảnh
+            </Button>
+            <Button onClick={() => setImageDialogOpen(false)} color="primary">
+              Đóng
+            </Button>
+          </div>
         </DialogActions>
       </Dialog>
       <ToastContainer></ToastContainer>
