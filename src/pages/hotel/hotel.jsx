@@ -43,6 +43,9 @@ const HotelManagement = () => {
   const [selectedImages, setSelectedImages] = useState([])
   const [check, setCheck] = useState(false)
 
+  const [selectedImagesToDelete, setSelectedImagesToDelete] = useState([]) // Lưu ID ảnh cần xóa
+  const [newImages, setNewImages] = useState([]) // Lưu ảnh mới
+
   useEffect(() => {
     fetchHotels()
     fetchDestinations()
@@ -106,7 +109,6 @@ const HotelManagement = () => {
       const jsonData = {
         name: hotelData.name,
         address: hotelData.address,
-        price: hotelData.price,
         rating: +hotelData.rating,
         destination_id: hotelData.destination_id ? hotelData.destination_id._id : null
       }
@@ -155,9 +157,61 @@ const HotelManagement = () => {
     }
   }
 
-  const handleOpenImageDialog = (images) => {
+  const handleOpenImageDialog = (images, id) => {
+    setEditId(id)
     setSelectedImages(images)
     setImageDialogOpen(true)
+  }
+
+  const handleSelectImageToDelete = (imageId) => {
+    setSelectedImagesToDelete((prev) =>
+      prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]
+    )
+  }
+  const handleFileUpload = (e) => {
+    setNewImages(Array.from(e.target.files))
+  }
+
+  const handleUploadNewImages = async () => {
+    console.log('newImages:', newImages)
+
+    if (newImages.length == 0) {
+      toast.warn('Vui lòng chọn ảnh để tải lên!')
+      return
+    }
+
+    try {
+      await hotelApi.updateImageHotel(editId, newImages)
+      toast.success(`Đã thêm ${newImages.length} ảnh thành công!`)
+
+      fetchHotels() // Cập nhật danh sách khách sạn
+      setNewImages([])
+      setImageDialogOpen(false)
+    } catch (error) {
+      console.error('Lỗi khi thêm ảnh:', error)
+      toast.error('Có lỗi xảy ra khi thêm ảnh!')
+    }
+  }
+
+  const handleDeleteSelectedImages = async () => {
+    if (!selectedImagesToDelete.length || !editId) {
+      toast.warn('Vui lòng chọn ít nhất một ảnh để xóa!')
+      return
+    }
+
+    try {
+      for (const imageId of selectedImagesToDelete) {
+        await hotelApi.deleteImageHotel(editId, imageId)
+      }
+
+      toast.success(`Đã xóa ${selectedImagesToDelete.length} ảnh thành công!`)
+      fetchHotels() // Cập nhật danh sách khách sạn
+      setSelectedImagesToDelete([])
+      setImageDialogOpen(false)
+    } catch (error) {
+      console.error('Lỗi khi xóa ảnh:', error)
+      toast.error('Có lỗi xảy ra khi xóa ảnh!')
+    }
   }
 
   return (
@@ -189,7 +243,7 @@ const HotelManagement = () => {
                 <TableCell>{hotel.rating}</TableCell>
                 <TableCell>
                   {hotel.image && hotel.image.length > 0 && (
-                    <IconButton onClick={() => handleOpenImageDialog(hotel.image.map((img) => img.url))}>
+                    <IconButton onClick={() => handleOpenImageDialog(hotel.image, hotel._id)}>
                       <IconEye />
                     </IconButton>
                   )}
@@ -272,16 +326,31 @@ const HotelManagement = () => {
       <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
         <DialogTitle>Hình ảnh khách sạn</DialogTitle>
         <DialogContent>
-          {selectedImages.map((img, index) => (
-            <img key={index} src={img} alt="hotel" style={{ width: '100%', marginBottom: 10, borderRadius: 5 }} />
+          {selectedImages.map((img) => (
+            <div key={img._id} style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <input
+                type="checkbox"
+                checked={selectedImagesToDelete.includes(img._id)}
+                onChange={() => handleSelectImageToDelete(img._id)}
+              />
+              <img src={img.url} alt="hotel" style={{ width: '100%', marginLeft: 10, borderRadius: 5 }} />
+            </div>
           ))}
+          <input type="file" multiple accept="image/*" onChange={handleFileUpload} />
         </DialogContent>
         <DialogActions>
+          <Button onClick={handleDeleteSelectedImages} color="secondary">
+            Xóa ảnh đã chọn
+          </Button>
+          <Button onClick={handleUploadNewImages} color="primary">
+            Thêm ảnh
+          </Button>
           <Button onClick={() => setImageDialogOpen(false)} color="primary">
             Đóng
           </Button>
         </DialogActions>
       </Dialog>
+
       <ToastContainer></ToastContainer>
     </div>
   )

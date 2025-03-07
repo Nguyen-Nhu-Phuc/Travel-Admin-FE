@@ -33,7 +33,7 @@ const scheduleApi = {
   },
 
   deleteImageSchedule: async (placeId, imageId) => {
-    const response = await axios.delete(`${API_URL}schedule/${placeId}/images/${imageId}`)
+    const response = await axios.delete(`${API_URL}schedule/${id}/images/${imageId}`)
     return response.data
   },
 
