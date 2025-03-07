@@ -1,8 +1,8 @@
 import dashboard from './dashboard'
-import pages from './page'
+// import pages from './page'
 
 const menuItems = {
-  items: [dashboard, pages]
+  items: [dashboard]
 }
 
 export default menuItems
