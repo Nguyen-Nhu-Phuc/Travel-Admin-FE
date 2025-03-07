@@ -162,14 +162,30 @@ const HotelManagement = () => {
     setSelectedImages(images)
     setImageDialogOpen(true)
   }
-
-  const handleSelectImageToDelete = (imageId) => {
-    setSelectedImagesToDelete((prev) =>
-      prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]
-    )
-  }
+  // ======================================
   const handleFileUpload = (e) => {
     setNewImages(Array.from(e.target.files))
+  }
+
+  const handleDeleteSelectedImages = async () => {
+    if (!selectedImagesToDelete.length || !editId) {
+      toast.warn('Vui lòng chọn ít nhất một ảnh để xóa!')
+      return
+    }
+
+    try {
+      for (const imageId of selectedImagesToDelete) {
+        await hotelApi.deleteImageHotel(editId, imageId)
+      }
+
+      toast.success(`Đã xóa ${selectedImagesToDelete.length} ảnh thành công!`)
+      fetchHotels() // Cập nhật danh sách khách sạn
+      setSelectedImagesToDelete([])
+      setImageDialogOpen(false)
+    } catch (error) {
+      console.error('Lỗi khi xóa ảnh:', error)
+      toast.error('Có lỗi xảy ra khi xóa ảnh!')
+    }
   }
 
   const handleUploadNewImages = async () => {
@@ -193,25 +209,10 @@ const HotelManagement = () => {
     }
   }
 
-  const handleDeleteSelectedImages = async () => {
-    if (!selectedImagesToDelete.length || !editId) {
-      toast.warn('Vui lòng chọn ít nhất một ảnh để xóa!')
-      return
-    }
-
-    try {
-      for (const imageId of selectedImagesToDelete) {
-        await hotelApi.deleteImageHotel(editId, imageId)
-      }
-
-      toast.success(`Đã xóa ${selectedImagesToDelete.length} ảnh thành công!`)
-      fetchHotels() // Cập nhật danh sách khách sạn
-      setSelectedImagesToDelete([])
-      setImageDialogOpen(false)
-    } catch (error) {
-      console.error('Lỗi khi xóa ảnh:', error)
-      toast.error('Có lỗi xảy ra khi xóa ảnh!')
-    }
+  const handleSelectImageToDelete = (imageId) => {
+    setSelectedImagesToDelete((prev) =>
+      prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]
+    )
   }
 
   return (
@@ -336,18 +337,20 @@ const HotelManagement = () => {
               <img src={img.url} alt="hotel" style={{ width: '100%', marginLeft: 10, borderRadius: 5 }} />
             </div>
           ))}
-          <input type="file" multiple accept="image/*" onChange={handleFileUpload} />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteSelectedImages} color="secondary">
-            Xóa ảnh đã chọn
-          </Button>
-          <Button onClick={handleUploadNewImages} color="primary">
-            Thêm ảnh
-          </Button>
-          <Button onClick={() => setImageDialogOpen(false)} color="primary">
-            Đóng
-          </Button>
+        <DialogActions style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <input type="file" multiple accept="image/*" onChange={handleFileUpload} />
+          <div>
+            <Button onClick={handleDeleteSelectedImages} color="secondary">
+              Xóa ảnh đã chọn
+            </Button>
+            <Button onClick={handleUploadNewImages} color="primary">
+              Thêm ảnh
+            </Button>
+            <Button onClick={() => setImageDialogOpen(false)} color="primary">
+              Đóng
+            </Button>
+          </div>
         </DialogActions>
       </Dialog>
 
