@@ -18,7 +18,7 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
-import { getAllDestinations } from '../../api/destinationApi'
+import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
 
 import { toast, ToastContainer } from 'react-toastify'
@@ -61,7 +61,7 @@ const HotelManagement = () => {
 
   const fetchDestinations = async () => {
     try {
-      const data = await getAllDestinations()
+      const data = await destinationsApi.getAllDestinations()
       setDestinations(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách địa điểm:', error)
@@ -147,8 +147,10 @@ const HotelManagement = () => {
       try {
         await hotelApi.deleteHotel(id)
         fetchHotels()
+        toast.success('Xóa khách sạn thành công!')
       } catch (error) {
         console.error('Lỗi khi xóa khách sạn:', error)
+        toast.error('Có lỗi xảy ra khi xóa khách sạn!')
       }
     }
   }
@@ -181,7 +183,9 @@ const HotelManagement = () => {
               <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
-                <TableCell>{hotel.price}</TableCell>
+                <TableCell>
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price)}
+                </TableCell>
                 <TableCell>{hotel.rating}</TableCell>
                 <TableCell>
                   {hotel.image && hotel.image.length > 0 && (

@@ -18,7 +18,7 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import placeApi from '../../api/placeApi'
-import destinationApi from '../../api/destinationApi'
+import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
 
 import { toast, ToastContainer } from 'react-toastify'
@@ -51,7 +51,7 @@ const DestinationManagement = () => {
 
   const fetchDestinations = async () => {
     try {
-      const data = await destinationApi.getAll()
+      const data = await destinationsApi.getAllDestinations()
       setDestinations(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách điểm đến:', error)
@@ -94,7 +94,7 @@ const DestinationManagement = () => {
     const files = Array.from(e.target.files)
     const imageURLs = files.map((file) => URL.createObjectURL(file))
     setPreviewImages(imageURLs)
-    setdestinationData({ ...destinationData, image: files })
+    setDestinationData({ ...destinationData, image: files })
   }
 
   const handleSubmit = async () => {
@@ -117,10 +117,10 @@ const DestinationManagement = () => {
       }
 
       if (editId) {
-        await destinationApi.update(editId, jsonData)
+        await destinationsApi.update(editId, jsonData)
         toast.success('Chỉnh sửa thông tin thành công!')
       } else {
-        await destinationApi.create(formData, {
+        await destinationsApi.create(formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
         toast.success('Tạo địa điểm thành công!')
@@ -130,7 +130,7 @@ const DestinationManagement = () => {
 
       setDestinationData({ name: '', address: '', image: [] })
 
-      await fetchPlace()
+      await fetchDestinations()
       handleClose()
     } catch (error) {
       setCheck(false)
@@ -142,8 +142,8 @@ const DestinationManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
       try {
-        await destinationApi.delete(id)
-        fetchPlace()
+        await destinationsApi.delete(id)
+        fetchDestinations()
       } catch (error) {
         console.error('Lỗi khi xóa khách sạn:', error)
       }

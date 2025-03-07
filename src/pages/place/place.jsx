@@ -18,7 +18,7 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import placeApi from '../../api/placeApi'
-import { getAllDestinations } from '../../api/destinationApi'
+import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
 
 import { toast, ToastContainer } from 'react-toastify'
@@ -53,16 +53,16 @@ const PlaceManagement = () => {
       const data = await placeApi.getAll()
       setPlaces(data)
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách khách sạn:', error)
+      console.error('Lỗi khi lấy danh sách địa điểm:', error)
     }
   }
 
   const fetchDestinations = async () => {
     try {
-      const data = await getAllDestinations()
+      const data = await destinationsApi.getAllDestinations()
       setDestinations(data)
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách địa điểm:', error)
+      console.error('Lỗi khi lấy danh sách điểm đến:', error)
     }
   }
 

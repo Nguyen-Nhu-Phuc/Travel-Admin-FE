@@ -1,62 +1,49 @@
-const axios = require('axios') // Sử dụng axios để gọi API
-
-// Lấy URL cơ bản từ biến môi trường
+import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL
 
-// API để lấy danh sách địa điểm
-const getPlaces = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/places`) // Sử dụng API_URL trong URL
+const scheduleApi = {
+  create: async (data) => {
+    const response = await axios.post(`${API_URL}schedule/create`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
     return response.data
-  } catch (error) {
-    throw new Error('Lỗi khi gọi API lấy địa điểm: ' + error.message)
+  },
+
+  getAll: async () => {
+    const response = await axios.get(`${API_URL}schedule/getAll`)
+    return response.data
+  },
+
+  getById: async (id) => {
+    const response = await axios.get(`${API_URL}schedule/${id}`)
+    return response.data
+  },
+
+  update: async (id, data) => {
+    const response = await axios.patch(`${API_URL}schedule/update/${id}`, data)
+    return response.data
+  },
+
+  deleteSchedule: async (id) => {
+    const response = await axios.delete(`${API_URL}schedule/delete/${id}`)
+    return response.data
+  },
+
+  deleteImageSchedule: async (placeId, imageId) => {
+    const response = await axios.delete(`${API_URL}schedule/${placeId}/images/${imageId}`)
+    return response.data
+  },
+
+  updateImageSchedule: async (id, files) => {
+    const formData = new FormData()
+    files.forEach((file) => formData.append('files', file))
+
+    const response = await axios.put(`${API_URL}schedule/${id}/images`, formData)
+    return response.data
   }
 }
 
-// API để lấy chi tiết một địa điểm
-const getPlaceById = async (placeId) => {
-  try {
-    const response = await axios.get(`${API_URL}/api/places/${placeId}`)
-    return response.data
-  } catch (error) {
-    throw new Error('Lỗi khi gọi API lấy chi tiết địa điểm: ' + error.message)
-  }
-}
-
-// API để tạo một địa điểm mới
-const createPlace = async (placeData) => {
-  try {
-    const response = await axios.post(`${API_URL}/api/places`, placeData) // Gửi yêu cầu POST để tạo mới
-    return response.data
-  } catch (error) {
-    throw new Error('Lỗi khi gọi API tạo địa điểm: ' + error.message)
-  }
-}
-
-// API để cập nhật địa điểm
-const updatePlace = async (placeId, updatedData) => {
-  try {
-    const response = await axios.put(`${API_URL}/api/places/${placeId}`, updatedData) // Gửi yêu cầu PUT để cập nhật
-    return response.data
-  } catch (error) {
-    throw new Error('Lỗi khi gọi API cập nhật địa điểm: ' + error.message)
-  }
-}
-
-// API để xóa địa điểm
-const deletePlace = async (placeId) => {
-  try {
-    const response = await axios.delete(`${API_URL}/api/places/${placeId}`) // Gửi yêu cầu DELETE để xóa
-    return response.data
-  } catch (error) {
-    throw new Error('Lỗi khi gọi API xóa địa điểm: ' + error.message)
-  }
-}
-
-module.exports = {
-  getPlaces,
-  getPlaceById,
-  createPlace,
-  updatePlace,
-  deletePlace
-}
+export default scheduleApi

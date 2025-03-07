@@ -18,7 +18,7 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import restaurantApi from '../../api/restaurantApi'
-import { getAllDestinations } from '../../api/destinationApi'
+import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
 
 import { toast, ToastContainer } from 'react-toastify'
@@ -53,16 +53,16 @@ const RestaurantManagement = () => {
       const data = await restaurantApi.getAll()
       setRestaurants(data)
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách nhà hàng:', error)
+      console.error('Lỗi khi lấy danh sách địa điểm:', error)
     }
   }
 
   const fetchDestinations = async () => {
     try {
-      const data = await getAllDestinations()
+      const data = await destinationsApi.getAllDestinations()
       setDestinations(data)
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách nhà hàng:', error)
+      console.error('Lỗi khi lấy danh sách điểm đến:', error)
     }
   }
 
@@ -127,7 +127,7 @@ const RestaurantManagement = () => {
 
       setCheck(false)
 
-      setRestaurantData({ name: '', address: '', price: '', rating: '', image: [], destination_id: null })
+      setRestaurantData({ name: '', description: '', image: [], destination_id: null })
 
       await fetchRestaurant()
       handleClose()
@@ -230,7 +230,7 @@ const RestaurantManagement = () => {
             value={restaurantData?.destination_id || null}
             onChange={(event, newValue) => setRestaurantData({ ...restaurantData, destination_id: newValue })}
             renderInput={(params, index) => (
-              <TextField key={index} {...params} label="Chọn nhà hàng" margin="dense" fullWidth />
+              <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
             )}
           />
         </DialogContent>
