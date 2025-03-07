@@ -1,32 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
 
 // material-ui
-import useMediaQuery from '@mui/material/useMediaQuery';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import useMediaQuery from '@mui/material/useMediaQuery'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
 
 // project imports
-import AppBarStyled from './AppBarStyled';
-import HeaderContent from './HeaderContent';
-import IconButton from 'components/@extended/IconButton';
+import AppBarStyled from './AppBarStyled'
+import HeaderContent from './HeaderContent'
+import IconButton from 'components/@extended/IconButton'
 
-import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
-import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from 'config';
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu'
+import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from 'config'
 
 // assets
-import MenuFoldOutlined from '@ant-design/icons/MenuFoldOutlined';
-import MenuUnfoldOutlined from '@ant-design/icons/MenuUnfoldOutlined';
+import MenuFoldOutlined from '@ant-design/icons/MenuFoldOutlined'
+import MenuUnfoldOutlined from '@ant-design/icons/MenuUnfoldOutlined'
 
 // ==============================|| MAIN LAYOUT - HEADER ||============================== //
 
 export default function Header() {
-  const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
+  const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'))
 
-  const { menuMaster } = useGetMenuMaster();
-  const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const { menuMaster } = useGetMenuMaster()
+  const drawerOpen = menuMaster.isDashboardDrawerOpened
 
   // header content
-  const headerContent = useMemo(() => <HeaderContent />, []);
+  const headerContent = useMemo(() => <HeaderContent />, [])
 
   // common header
   const mainHeader = (
@@ -48,7 +48,7 @@ export default function Header() {
       </IconButton>
       {headerContent}
     </Toolbar>
-  );
+  )
 
   // app-bar params
   const appBar = {
@@ -61,7 +61,7 @@ export default function Header() {
       zIndex: 1200,
       width: { xs: '100%', lg: drawerOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : `calc(100% - ${MINI_DRAWER_WIDTH}px)` }
     }
-  };
+  }
 
   return (
     <>
@@ -73,5 +73,5 @@ export default function Header() {
         <AppBar {...appBar}>{mainHeader}</AppBar>
       )}
     </>
-  );
+  )
 }
