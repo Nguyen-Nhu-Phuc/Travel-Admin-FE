@@ -68,6 +68,8 @@ const RestaurantManagement = () => {
 
   const handleOpen = (restaurant = null) => {
     if (restaurant) {
+      console.log(restaurant)
+
       setRestaurantData({ ...restaurant, destination_id: restaurant.destination_id || null })
       setPreviewImages(restaurant.image ? restaurant.image.map((img) => img.url) : [])
       setEditId(restaurant._id)
