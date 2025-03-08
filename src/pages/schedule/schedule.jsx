@@ -16,16 +16,10 @@ import {
   IconButton,
   Box
 } from '@mui/material'
-import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
 import scheduleApi from '../../api/scheduleApi'
 import destinationsApi from '../../api/destinationApi'
-import Backdrop from '@mui/material/Backdrop'
-
 import { toast, ToastContainer } from 'react-toastify'
-
-import CircularProgress from '@mui/material/CircularProgress'
-
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
@@ -203,7 +197,7 @@ const ScheduleManagement = () => {
   // Sắp xếp theo thời gian tăng dần
   events.sort((a, b) => convertTo24Hour(a.time) - convertTo24Hour(b.time))
 
-  // console.log(events)
+  console.log(events)
 
   return (
     <div>
@@ -244,21 +238,52 @@ const ScheduleManagement = () => {
             {events?.map((schedule, index) => (
               <TimelineItem key={index} position={index % 2 === 0 ? 'left' : 'right'}>
                 <TimelineOppositeContent>
-                  <Typography variant="caption" component="div" className="mbs-5">
+                  <Typography variant="caption" component="div" sx={{ color: '#ff5722', fontWeight: 'bold' }}>
                     {schedule.time}
                   </Typography>
                 </TimelineOppositeContent>
                 <TimelineSeparator>
-                  <TimelineDot color="error" variant="tonal">
-                    <i className="tabler-file text-xl" />
+                  <TimelineDot
+                    sx={{
+                      backgroundColor:
+                        schedule.type === 'restaurant'
+                          ? 'green'
+                          : schedule.type === 'hotel'
+                            ? 'blue'
+                            : schedule.type === 'place'
+                              ? 'purple'
+                              : 'gray'
+                    }}
+                  >
+                    <i className="tabler-file text-xl" style={{ color: 'white' }} />
                   </TimelineDot>
-                  <TimelineConnector />
+                  <TimelineConnector sx={{ backgroundColor: '#ff9800', height: 4 }} />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <Card>
+                  <Card
+                    sx={{
+                      backgroundColor:
+                        schedule.type === 'restaurant'
+                          ? '#e8f5e9'
+                          : schedule.type === 'hotel'
+                            ? '#e3f2fd'
+                            : schedule.type === 'place'
+                              ? '#f3e5f5'
+                              : '#f5f5f5',
+                      borderLeft: `5px solid ${
+                        schedule.type === 'restaurant'
+                          ? 'green'
+                          : schedule.type === 'hotel'
+                            ? 'blue'
+                            : schedule.type === 'place'
+                              ? 'purple'
+                              : 'gray'
+                      }`
+                    }}
+                  >
                     <CardContent sx={{ padding: 2, maxWidth: '300px', overflowX: 'auto' }}>
-                      <Typography variant="h5" className="mbe-4">
-                        {/* {schedule.name} */}
+                      <Typography variant="h5" sx={{ color: '#d32f2f', fontWeight: 'bold' }} className="mbe-4">
+                        {schedule.name}
                       </Typography>
 
                       {schedule.type === 'restaurant' && schedule.restaurant_id && (
@@ -270,7 +295,7 @@ const ScheduleManagement = () => {
                               display: 'flex',
                               gap: 2,
                               flexDirection: 'row',
-                              flexWrap: 'rap',
+                              flexWrap: 'wrap',
                               marginTop: '10px',
                               overflowX: 'visible'
                             }}
@@ -289,8 +314,8 @@ const ScheduleManagement = () => {
                           <Typography className="mbe-3">{schedule.hotel_id.name}</Typography>
                           <Typography className="mbe-3">{schedule.hotel_id.address}</Typography>
                           <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', marginTop: '10px' }}>
-                            {schedule.hotel_id.image.map((image) => (
-                              <Box className="flex flex-row gap-4">
+                            {schedule.hotel_id.image.map((image, index) => (
+                              <Box key={index} className="flex flex-row gap-4">
                                 <img height={100} src={image.url} />
                               </Box>
                             ))}
@@ -303,8 +328,8 @@ const ScheduleManagement = () => {
                           <Typography className="mbe-3">{schedule.place_id.name}</Typography>
                           <Typography className="mbe-3">{schedule.place_id.description}</Typography>
                           <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', marginTop: '10px' }}>
-                            {schedule.place_id.image.map((image) => (
-                              <Box className="flex flex-row gap-4">
+                            {schedule.place_id.image.map((image, index) => (
+                              <Box key={index} className="flex flex-row gap-4">
                                 <img height={100} src={image.url} />
                               </Box>
                             ))}
