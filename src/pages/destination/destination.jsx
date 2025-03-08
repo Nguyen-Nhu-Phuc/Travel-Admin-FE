@@ -220,12 +220,12 @@ const DestinationManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {destinations.map((destination) => (
-              <TableRow>
+            {destinations?.map((destination, index) => (
+              <TableRow key={index}>
                 <TableCell>{destination.name}</TableCell>
                 <TableCell>{destination.description}</TableCell>
                 <TableCell>
-                  {destination.image && destination.image.length > 0 && (
+                  {destination?.image && destination?.image.length > 0 && (
                     <IconButton onClick={() => handleOpenImageDialog(destination.image, destination._id)}>
                       <IconEye />
                     </IconButton>
@@ -285,7 +285,7 @@ const DestinationManagement = () => {
       <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
         <DialogTitle>Hình ảnh điểm đến</DialogTitle>
         <DialogContent>
-          {selectedImages.map((img) => (
+          {selectedImages?.map((img) => (
             <div key={img._id} style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <input
                 type="checkbox"

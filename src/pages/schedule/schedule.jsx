@@ -17,7 +17,6 @@ import {
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
-// import placeApi from '../../api/placeApi'
 import scheduleApi from '../../api/scheduleApi'
 import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
@@ -25,6 +24,72 @@ import Backdrop from '@mui/material/Backdrop'
 import { toast, ToastContainer } from 'react-toastify'
 
 import CircularProgress from '@mui/material/CircularProgress'
+
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography'
+import Avatar from '@mui/material/Avatar'
+import Rating from '@mui/material/Rating'
+import Chip from '@mui/material/Chip'
+import { styled, useTheme } from '@mui/material/styles'
+import MuiTimeline from '@mui/lab/Timeline'
+import TimelineDot from '@mui/lab/TimelineDot'
+import TimelineItem from '@mui/lab/TimelineItem'
+import TimelineContent from '@mui/lab/TimelineContent'
+import TimelineSeparator from '@mui/lab/TimelineSeparator'
+import TimelineConnector from '@mui/lab/TimelineConnector'
+import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
+import LinearProgress from '@mui/material/LinearProgress'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { data } from 'react-router'
+
+// Styled Timeline component
+const Timeline = styled(MuiTimeline)(({ theme }) => ({
+  paddingLeft: 0,
+  paddingRight: 0,
+  '& .MuiTimelineItem-root:nth-of-type(even) .MuiTimelineContent-root': {
+    textAlign: 'left'
+  },
+  [theme.breakpoints.down('md')]: {
+    '& .MuiTimelineItem-root': {
+      width: '100%',
+      '&:before': {
+        display: 'none'
+      }
+    }
+  }
+}))
+
+const ImageList = [
+  '/images/misc/plant-1.png',
+  '/images/misc/plant-2.png',
+  '/images/misc/plant-3.png',
+  '/images/misc/plant-4.png'
+]
+
+const Data = [
+  {
+    image: '/images/misc/zipcar.png',
+    title: 'Zipcar',
+    subtitle: 'Vuejs, React & HTML',
+    progress: 24895.65,
+    progressColor: 'primary'
+  },
+  {
+    image: '/images/misc/bitbank.png',
+    title: 'Bitbank',
+    subtitle: 'Sketch, Figma & XD',
+    progress: 86500.2,
+    progressColor: 'info'
+  },
+  {
+    image: '/images/misc/aviato.png',
+    title: 'Aviato',
+    subtitle: 'HTML & Anguler',
+    progress: 12450.8,
+    progressColor: 'secondary'
+  }
+]
 
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([])
@@ -34,15 +99,20 @@ const ScheduleManagement = () => {
     name: '',
     description: '',
     start_date: '',
-    end_date: '',
-    image: [],
-    destination_id: null
+    end_date: ''
   })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState([])
   const [check, setCheck] = useState(false)
+
+  const theme = useTheme()
+  const isBelowMdScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [selectedSchedule, setSelectedSchedule] = useState(null)
+
+  const [scheduleOne, setScheduleOne] = useState(null)
 
   useEffect(() => {
     fetchSchedule()
@@ -55,8 +125,18 @@ const ScheduleManagement = () => {
     try {
       const data = await scheduleApi.getAll()
       setSchedules(data)
+      console.log(data)
     } catch (error) {
       console.error('Lỗi khi lấy danh sách địa điểm:', error)
+    }
+  }
+
+  const fetchOneSchedule = async (id) => {
+    try {
+      const data = await scheduleApi.getById(id)
+      setScheduleOne(data)
+    } catch (error) {
+      console.error('Lỗi:', error)
     }
   }
 
@@ -130,7 +210,7 @@ const ScheduleManagement = () => {
 
       setCheck(false)
 
-      setScheduleData({ name: '', address: '', start_date: '', nd_date: '', image: [], destination_id: null })
+      setScheduleData({ name: '', address: '', start_date: '', end_date: '', image: [], destination_id: null })
 
       await fetchSchedule()
       handleClose()
@@ -157,12 +237,53 @@ const ScheduleManagement = () => {
     setImageDialogOpen(true)
   }
 
+  // ==================
+
+  const handleOpenDetailDialog = (schedule, id) => {
+    setSelectedSchedule(schedule)
+    setDetailDialogOpen(true)
+    fetchOneSchedule(id)
+  }
+
+  const handleCloseDetailDialog = () => {
+    setDetailDialogOpen(false)
+    setSelectedSchedule(null)
+  }
+  // ==================
+
+  // Hàm chuyển đổi time từ định dạng AM/PM sang số (giờ phút)
+  const convertTo24Hour = (time) => {
+    const [hour, minute, period] = time.match(/(\d+):(\d+) (\w+)/).slice(1)
+    let hours = parseInt(hour, 10)
+    if (period === 'PM' && hours !== 12) hours += 12
+    if (period === 'AM' && hours === 12) hours = 0
+    return hours * 60 + parseInt(minute, 10) // Tổng số phút trong ngày
+  }
+
+  // Gom tất cả các đối tượng có `time`
+  let events = []
+  // const [envent, setEvent] = useState([])
+
+  scheduleOne?.schedule?.forEach((day) => {
+    if (day.hotel) {
+      events.push({ ...day.hotel, type: 'hotel' })
+    }
+    if (day.place) {
+      events.push(...day.place.map((p) => ({ ...p, type: 'place' })))
+    }
+    if (day.restaurant) {
+      events.push(...day.restaurant.map((r) => ({ ...r, type: 'restaurant' })))
+    }
+  })
+
+  // Sắp xếp theo thời gian tăng dần
+  events.sort((a, b) => convertTo24Hour(a.time) - convertTo24Hour(b.time))
+
+  console.log(events)
+
   return (
     <div>
       <h2>Danh Sách Lịch trình </h2>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-        Thêm lịch trình
-      </Button>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -171,9 +292,7 @@ const ScheduleManagement = () => {
               <TableCell>Miêu tả</TableCell>
               <TableCell>Ngày bắt đầu</TableCell>
               <TableCell>Ngày kết thúc</TableCell>
-              <TableCell>Khách hàng</TableCell>
-              {/* <TableCell>Hình ảnh</TableCell> */}
-              <TableCell>Hành động</TableCell>
+              <TableCell>Chi tiết</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -181,23 +300,12 @@ const ScheduleManagement = () => {
               <TableRow key={schedule._id}>
                 <TableCell>{schedule.name}</TableCell>
                 <TableCell>{schedule.description}</TableCell>
-                <TableCell>{schedule.start_date}</TableCell>
-                <TableCell>{schedule.end_date}</TableCell>
-                <TableCell>{schedule.name}</TableCell>
-                {/* <TableCell>
-                  {schedule.image && schedule.image.length > 0 && (
-                    <IconButton onClick={() => handleOpenImageDialog(schedule.image.map((img) => img.url))}>
-                      <IconEye />
-                    </IconButton>
-                  )}
-                </TableCell> */}
+                <TableCell>{new Date(schedule.start_date).toLocaleDateString('vi-VN')}</TableCell>
+                <TableCell>{new Date(schedule.end_date).toLocaleDateString('vi-VN')}</TableCell>
                 <TableCell>
-                  <Button color="primary" onClick={() => handleOpen(schedule)}>
-                    Sửa
-                  </Button>
-                  <Button color="secondary" onClick={() => handleDelete(schedule._id)}>
-                    Xóa
-                  </Button>
+                  <IconButton onClick={() => handleOpenDetailDialog(schedule, schedule._id)}>
+                    <IconEye />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -252,19 +360,70 @@ const ScheduleManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={imageDialogOpen} onClose={() => setImageDialogOpen(false)}>
-        <DialogTitle>Hình ảnh địa điểm</DialogTitle>
+      <Dialog open={detailDialogOpen} onClose={() => setDetailDialogOpen(false)}>
+        <DialogTitle>Chi tiết lịch trình</DialogTitle>
         <DialogContent>
-          {selectedImages.map((img, index) => (
-            <img key={index} src={img} alt="schedule" style={{ width: '100%', marginBottom: 10, borderRadius: 5 }} />
-          ))}
+          <Timeline>
+            {events
+              ?.filter(
+                (schedule) => schedule.type === 'restaurant' || schedule.type === 'hotel' || schedule.type === 'place'
+              )
+              .map((schedule, index) => {
+                const position = isBelowMdScreen ? 'right' : index % 2 === 0 ? 'left' : 'right'
+
+                return (
+                  <TimelineItem key={index} position={position}>
+                    {!isBelowMdScreen && (
+                      <TimelineOppositeContent>
+                        <Typography variant="caption" component="div" className="mbs-5">
+                          {schedule.time}
+                        </Typography>
+                      </TimelineOppositeContent>
+                    )}
+
+                    <TimelineSeparator>
+                      <TimelineDot color={schedule.type === 'restaurant' ? 'error' : 'primary'} variant="tonal">
+                        <i className="tabler-file text-xl" />
+                      </TimelineDot>
+                      <TimelineConnector />
+                    </TimelineSeparator>
+
+                    <TimelineContent>
+                      {/* Nếu màn hình nhỏ, hiển thị thời gian phía trên nội dung */}
+                      {isBelowMdScreen && (
+                        <Typography variant="caption" component="div" className="mbs-5">
+                          2 months ago
+                        </Typography>
+                      )}
+
+                      <Card>
+                        <CardContent>
+                          <Typography variant="h5" className="mbe-4">
+                            {schedule.name}
+                          </Typography>
+                          <Typography className="mbe-3">
+                            The process of recording the key project details and producing the documents that are
+                            required to implement it successfully. Simply put, it's an umbrella term which includes all
+                            the documents created over the course of the project.
+                          </Typography>
+                          <div className="flex items-center gap-2.5 is-fit rounded bg-actionHover plb-[5px] pli-2.5">
+                            <img height={20} alt="documentation.pdf" src="/images/icons/pdf-document.png" />
+                            <Typography className="font-medium">documentation.pdf</Typography>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TimelineContent>
+                  </TimelineItem>
+                )
+              })}
+          </Timeline>
         </DialogContent>
+
         <DialogActions>
-          <Button onClick={() => setImageDialogOpen(false)} color="primary">
-            Đóng
-          </Button>
+          <Button onClick={() => setDetailDialogOpen(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
+
       <ToastContainer></ToastContainer>
     </div>
   )
