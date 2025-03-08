@@ -13,7 +13,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  Box
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { IconEye } from '@tabler/icons-react'
@@ -28,9 +29,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
-import Avatar from '@mui/material/Avatar'
-import Rating from '@mui/material/Rating'
-import Chip from '@mui/material/Chip'
 import { styled, useTheme } from '@mui/material/styles'
 import MuiTimeline from '@mui/lab/Timeline'
 import TimelineDot from '@mui/lab/TimelineDot'
@@ -39,9 +37,7 @@ import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
-import LinearProgress from '@mui/material/LinearProgress'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { data } from 'react-router'
 
 // Styled Timeline component
 const Timeline = styled(MuiTimeline)(({ theme }) => ({
@@ -59,37 +55,6 @@ const Timeline = styled(MuiTimeline)(({ theme }) => ({
     }
   }
 }))
-
-const ImageList = [
-  '/images/misc/plant-1.png',
-  '/images/misc/plant-2.png',
-  '/images/misc/plant-3.png',
-  '/images/misc/plant-4.png'
-]
-
-const Data = [
-  {
-    image: '/images/misc/zipcar.png',
-    title: 'Zipcar',
-    subtitle: 'Vuejs, React & HTML',
-    progress: 24895.65,
-    progressColor: 'primary'
-  },
-  {
-    image: '/images/misc/bitbank.png',
-    title: 'Bitbank',
-    subtitle: 'Sketch, Figma & XD',
-    progress: 86500.2,
-    progressColor: 'info'
-  },
-  {
-    image: '/images/misc/aviato.png',
-    title: 'Aviato',
-    subtitle: 'HTML & Anguler',
-    progress: 12450.8,
-    progressColor: 'secondary'
-  }
-]
 
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([])
@@ -147,19 +112,6 @@ const ScheduleManagement = () => {
     } catch (error) {
       console.error('Lỗi khi lấy danh sách điểm đến:', error)
     }
-  }
-
-  const handleOpen = (schedule = null) => {
-    if (schedule) {
-      setScheduleData({ ...schedule, destination_id: schedule.destination_id || null })
-      setPreviewImages(schedule.image ? schedule.image.map((img) => img.url) : [])
-      setEditId(schedule._id)
-    } else {
-      setScheduleData({ name: '', description: '', image: [], destination_id: null })
-      setPreviewImages([])
-      setEditId(null)
-    }
-    setOpen(true)
   }
 
   const handleClose = () => {
@@ -221,36 +173,11 @@ const ScheduleManagement = () => {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
-      try {
-        await scheduleApi.deleteSchedule(id)
-        fetchSchedule()
-      } catch (error) {
-        console.error('Lỗi khi xóa khách sạn:', error)
-      }
-    }
-  }
-
-  const handleOpenImageDialog = (images) => {
-    setSelectedImages(images)
-    setImageDialogOpen(true)
-  }
-
-  // ==================
-
   const handleOpenDetailDialog = (schedule, id) => {
     setSelectedSchedule(schedule)
     setDetailDialogOpen(true)
     fetchOneSchedule(id)
   }
-
-  const handleCloseDetailDialog = () => {
-    setDetailDialogOpen(false)
-    setSelectedSchedule(null)
-  }
-  // ==================
-
   // Hàm chuyển đổi time từ định dạng AM/PM sang số (giờ phút)
   const convertTo24Hour = (time) => {
     const [hour, minute, period] = time.match(/(\d+):(\d+) (\w+)/).slice(1)
@@ -260,10 +187,7 @@ const ScheduleManagement = () => {
     return hours * 60 + parseInt(minute, 10) // Tổng số phút trong ngày
   }
 
-  // Gom tất cả các đối tượng có `time`
   let events = []
-  // const [envent, setEvent] = useState([])
-
   scheduleOne?.schedule?.forEach((day) => {
     if (day.hotel) {
       events.push({ ...day.hotel, type: 'hotel' })
@@ -279,7 +203,7 @@ const ScheduleManagement = () => {
   // Sắp xếp theo thời gian tăng dần
   events.sort((a, b) => convertTo24Hour(a.time) - convertTo24Hour(b.time))
 
-  console.log(events)
+  // console.log(events)
 
   return (
     <div>
@@ -313,109 +237,85 @@ const ScheduleManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose}>
-        <div>
-          <Backdrop sx={(theme) => ({ color: '#199c51', zIndex: 999999 })} open={check}>
-            <CircularProgress color="inherit" />
-          </Backdrop>
-        </div>
-        <DialogTitle>{editId ? 'Chỉnh sửa khách sạn' : 'Thêm khách sạn'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Tên"
-            name="name"
-            value={scheduleData.name}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-          />
-          <TextField
-            label="Miêu tả"
-            name="description"
-            value={scheduleData.description}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-          />
-          {!editId && (
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
-          )}
-          <Autocomplete
-            options={destinations}
-            getOptionLabel={(option) => option?.name}
-            defaultValue={scheduleData?.destination_id?._id || null}
-            value={scheduleData?.destination_id || null}
-            onChange={(event, newValue) => setScheduleData({ ...scheduleData, destination_id: newValue })}
-            renderInput={(params, index) => (
-              <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
-            )}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="secondary">
-            Hủy
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            Lưu
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={detailDialogOpen} onClose={() => setDetailDialogOpen(false)}>
+      <Dialog open={detailDialogOpen} onClose={() => setDetailDialogOpen(false)} fullWidth>
         <DialogTitle>Chi tiết lịch trình</DialogTitle>
         <DialogContent>
-          <Timeline>
-            {events
-              ?.filter(
-                (schedule) => schedule.type === 'restaurant' || schedule.type === 'hotel' || schedule.type === 'place'
-              )
-              .map((schedule, index) => {
-                const position = isBelowMdScreen ? 'right' : index % 2 === 0 ? 'left' : 'right'
+          <Timeline position="alternate">
+            {events?.map((schedule, index) => (
+              <TimelineItem key={index} position={index % 2 === 0 ? 'left' : 'right'}>
+                <TimelineOppositeContent>
+                  <Typography variant="caption" component="div" className="mbs-5">
+                    {schedule.time}
+                  </Typography>
+                </TimelineOppositeContent>
+                <TimelineSeparator>
+                  <TimelineDot color="error" variant="tonal">
+                    <i className="tabler-file text-xl" />
+                  </TimelineDot>
+                  <TimelineConnector />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <Card>
+                    <CardContent sx={{ padding: 2, maxWidth: '300px', overflowX: 'auto' }}>
+                      <Typography variant="h5" className="mbe-4">
+                        {/* {schedule.name} */}
+                      </Typography>
 
-                return (
-                  <TimelineItem key={index} position={position}>
-                    {!isBelowMdScreen && (
-                      <TimelineOppositeContent>
-                        <Typography variant="caption" component="div" className="mbs-5">
-                          {schedule.time}
-                        </Typography>
-                      </TimelineOppositeContent>
-                    )}
-
-                    <TimelineSeparator>
-                      <TimelineDot color={schedule.type === 'restaurant' ? 'error' : 'primary'} variant="tonal">
-                        <i className="tabler-file text-xl" />
-                      </TimelineDot>
-                      <TimelineConnector />
-                    </TimelineSeparator>
-
-                    <TimelineContent>
-                      {/* Nếu màn hình nhỏ, hiển thị thời gian phía trên nội dung */}
-                      {isBelowMdScreen && (
-                        <Typography variant="caption" component="div" className="mbs-5">
-                          2 months ago
-                        </Typography>
+                      {schedule.type === 'restaurant' && schedule.restaurant_id && (
+                        <>
+                          <Typography className="mbe-3">{schedule.restaurant_id.name}</Typography>
+                          <Typography className="mbe-3">{schedule.restaurant_id.description}</Typography>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              gap: 2,
+                              flexDirection: 'row',
+                              flexWrap: 'rap',
+                              marginTop: '10px',
+                              overflowX: 'visible'
+                            }}
+                          >
+                            {schedule.restaurant_id.image.map((image, index) => (
+                              <Box key={index} className="flex flex-row gap-4">
+                                <img height={100} src={image.url} />
+                              </Box>
+                            ))}
+                          </Box>
+                        </>
                       )}
 
-                      <Card>
-                        <CardContent>
-                          <Typography variant="h5" className="mbe-4">
-                            {schedule.name}
-                          </Typography>
-                          <Typography className="mbe-3">
-                            The process of recording the key project details and producing the documents that are
-                            required to implement it successfully. Simply put, it's an umbrella term which includes all
-                            the documents created over the course of the project.
-                          </Typography>
-                          <div className="flex items-center gap-2.5 is-fit rounded bg-actionHover plb-[5px] pli-2.5">
-                            <img height={20} alt="documentation.pdf" src="/images/icons/pdf-document.png" />
-                            <Typography className="font-medium">documentation.pdf</Typography>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </TimelineContent>
-                  </TimelineItem>
-                )
-              })}
+                      {schedule.type === 'hotel' && (
+                        <>
+                          <Typography className="mbe-3">{schedule.hotel_id.name}</Typography>
+                          <Typography className="mbe-3">{schedule.hotel_id.address}</Typography>
+                          <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', marginTop: '10px' }}>
+                            {schedule.hotel_id.image.map((image) => (
+                              <Box className="flex flex-row gap-4">
+                                <img height={100} src={image.url} />
+                              </Box>
+                            ))}
+                          </Box>
+                        </>
+                      )}
+
+                      {schedule.type === 'place' && (
+                        <>
+                          <Typography className="mbe-3">{schedule.place_id.name}</Typography>
+                          <Typography className="mbe-3">{schedule.place_id.description}</Typography>
+                          <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', marginTop: '10px' }}>
+                            {schedule.place_id.image.map((image) => (
+                              <Box className="flex flex-row gap-4">
+                                <img height={100} src={image.url} />
+                              </Box>
+                            ))}
+                          </Box>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TimelineContent>
+              </TimelineItem>
+            ))}
           </Timeline>
         </DialogContent>
 
