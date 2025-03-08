@@ -1,10 +1,11 @@
-import { RouterProvider } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom'
+import './index.css'
 
 // project imports
-import router from 'routes';
-import ThemeCustomization from 'themes';
+import router from 'routes'
+import ThemeCustomization from 'themes'
 
-import ScrollTop from 'components/ScrollTop';
+import ScrollTop from 'components/ScrollTop'
 
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
@@ -15,5 +16,5 @@ export default function App() {
         <RouterProvider router={router} />
       </ScrollTop>
     </ThemeCustomization>
-  );
+  )
 }
