@@ -314,7 +314,7 @@ const DestinationManagement = () => {
           {!editId && (
             <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
           )}
-          <Typography>Chọn vị trí khách sạn</Typography>
+          <Typography>Chọn vị trí điểm đến</Typography>
           <MapApp locationLong={destinationData?.long} locationLat={destinationData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
         </DialogContent>
         <DialogActions>

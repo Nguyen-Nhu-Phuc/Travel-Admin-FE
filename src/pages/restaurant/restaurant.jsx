@@ -269,7 +269,7 @@ const RestaurantManagement = () => {
             fullWidth
             margin="dense"
           />
-          <Typography>Chọn vị trí khách sạn</Typography>
+          <Typography>Chọn vị trí nhà hàng</Typography>
           <MapApp locationLong={restaurantData?.long} locationLat={restaurantData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
           {!editId && (
             <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />

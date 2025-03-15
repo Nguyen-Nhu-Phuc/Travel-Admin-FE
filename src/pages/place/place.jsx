@@ -320,7 +320,7 @@ const PlaceManagement = () => {
               <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
             )}
           />
-          <Typography>Chọn vị trí khách sạn</Typography>
+          <Typography>Chọn vị trí địa điểm</Typography>
           <MapApp locationLong={placeData?.long} locationLat={placeData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
           {!editId && (
             <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
