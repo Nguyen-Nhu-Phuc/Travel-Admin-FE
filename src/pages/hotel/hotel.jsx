@@ -13,10 +13,11 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  Typography
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
-import { IconEye } from '@tabler/icons-react'
+import { IconEye, IconEdit, IconTrash, IconPlus } from '@tabler/icons-react'
 import hotelApi from '../../api/hotelApi'
 import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
@@ -24,6 +25,11 @@ import Backdrop from '@mui/material/Backdrop'
 import { toast, ToastContainer } from 'react-toastify'
 
 import CircularProgress from '@mui/material/CircularProgress'
+import { DeleteElements } from '../common/deleteElements.jsx'
+
+import MapApp from '../common/map.jsx'
+
+
 
 const HotelManagement = () => {
   const [hotels, setHotels] = useState([])
@@ -35,7 +41,7 @@ const HotelManagement = () => {
     price: '',
     rating: '',
     image: [],
-    destination_id: null
+    destination_id: '',
   })
   const [editId, setEditId] = useState(null)
   const [previewImages, setPreviewImages] = useState([])
@@ -45,13 +51,21 @@ const HotelManagement = () => {
 
   const [selectedImagesToDelete, setSelectedImagesToDelete] = useState([]) // Lưu ID ảnh cần xóa
   const [newImages, setNewImages] = useState([]) // Lưu ảnh mới
+  const [openDelete, setOpenDelete] = useState(false)
+  const [id, setId] = useState('')
+  const [data, setData] = useState(null)
+  const [checkElement, setCheckElement] = useState('')
+
+
+  const [long, setLong] = useState('')
+  const [lat, setLat] = useState('')
 
   useEffect(() => {
     fetchHotels()
     fetchDestinations()
   }, [])
 
-  useEffect(() => {}, [hotelData])
+  useEffect(() => { }, [hotelData])
 
   const fetchHotels = async () => {
     try {
@@ -73,11 +87,11 @@ const HotelManagement = () => {
 
   const handleOpen = (hotel = null) => {
     if (hotel) {
-      setHotelData({ ...hotel, destination_id: hotel.destination_id || null })
+      setHotelData({ ...hotel, destination_id: hotel.destination_id || '' })
       setPreviewImages(hotel.image ? hotel.image.map((img) => img.url) : [])
       setEditId(hotel._id)
     } else {
-      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination_id: null })
+      setHotelData({ name: '', address: '', price: '', rating: '', image: [], destination_id: '', long: '', lat: '' })
       setPreviewImages([])
       setEditId(null)
     }
@@ -106,9 +120,18 @@ const HotelManagement = () => {
       setCheck(true)
       const formData = new FormData()
 
+      if (!hotelData.name) {
+        toast.warn('Vui lòng điền tên khách sạn!')
+        setCheck(false)
+        return
+      }
+
       const jsonData = {
         name: hotelData.name,
         address: hotelData.address,
+        long: +long,
+        price: +hotelData.price,
+        lat: +lat,
         rating: +hotelData.rating,
         destination_id: hotelData.destination_id ? hotelData.destination_id._id : null
       }
@@ -145,17 +168,16 @@ const HotelManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
-      try {
-        await hotelApi.deleteHotel(id)
-        fetchHotels()
-        toast.success('Xóa khách sạn thành công!')
-      } catch (error) {
-        console.error('Lỗi khi xóa khách sạn:', error)
-        toast.error('Có lỗi xảy ra khi xóa khách sạn!')
-      }
+    try {
+      await hotelApi.deleteHotel(id)
+      fetchHotels()
+      toast.success('Xóa khách sạn thành công!')
+    } catch (error) {
+      console.error('Lỗi khi xóa khách sạn:', error)
+      toast.error('Có lỗi xảy ra khi xóa khách sạn!')
     }
   }
+
 
   const handleOpenImageDialog = (images, id) => {
     setEditId(id)
@@ -215,10 +237,21 @@ const HotelManagement = () => {
     )
   }
 
+  const handleOpenDelete = (id, data) => {
+    setId(id)
+    setData(data)
+    setCheckElement('hotel')
+    setOpenDelete(true)
+  }
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false)
+  }
+
   return (
     <div>
-      <h2>Danh Sách khách sạn</h2>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+      <h2>Danh Sách Khách Sạn</h2>
+      <Button startIcon={<IconPlus ></IconPlus >} sx={{ marginBottom: '20px' }} variant="contained" color="primary" onClick={() => handleOpen()}>
         Thêm khách sạn
       </Button>
       <TableContainer component={Paper}>
@@ -227,10 +260,11 @@ const HotelManagement = () => {
             <TableRow>
               <TableCell>Tên</TableCell>
               <TableCell>Địa chỉ</TableCell>
-              <TableCell>Giá</TableCell>
-              <TableCell>Đánh giá</TableCell>
-              <TableCell>Hình ảnh</TableCell>
-              <TableCell>Hành động</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Giá</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Đánh giá</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -238,11 +272,11 @@ const HotelManagement = () => {
               <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price)}
+                <TableCell >
+                  {hotel.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price) : 'Chưa cập nhật'}
                 </TableCell>
-                <TableCell>{hotel.rating}</TableCell>
-                <TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{hotel.rating}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   {hotel.image && hotel.image.length > 0 && (
                     <IconButton onClick={() => handleOpenImageDialog(hotel.image, hotel._id)}>
                       <IconEye />
@@ -250,11 +284,19 @@ const HotelManagement = () => {
                   )}
                 </TableCell>
                 <TableCell>
+                  {hotel.long && hotel.lat && (
+                    <Typography>
+                      Kinh độ: {hotel.long}
+                      <br />
+                      Vĩ độ: {hotel.lat}</Typography>)}
+                </TableCell>
+
+                <TableCell sx={{ textAlign: 'center' }}>
                   <Button color="primary" onClick={() => handleOpen(hotel)}>
-                    Sửa
+                    <IconEdit stroke={2}></IconEdit>
                   </Button>
-                  <Button color="secondary" onClick={() => handleDelete(hotel._id)}>
-                    Xóa
+                  <Button color="error" onClick={() => handleOpenDelete(hotel?._id, hotel)}>
+                    <IconTrash stroke={2}></IconTrash>
                   </Button>
                 </TableCell>
               </TableRow>
@@ -262,6 +304,7 @@ const HotelManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      {openDelete && <DeleteElements checkElement={checkElement} id={id} data={data} open={openDelete} handleClose={handleCloseDelete} onDelete={handleDelete} />}
 
       <Dialog open={open} onClose={handleClose}>
         <div>
@@ -269,7 +312,6 @@ const HotelManagement = () => {
             sx={(theme) => ({ color: '#199c51', zIndex: 999999 })}
             open={check}
 
-            // onClick={!check}
           >
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -284,6 +326,16 @@ const HotelManagement = () => {
             onChange={handleChange}
             fullWidth
             margin="dense"
+          />
+          <Autocomplete
+            options={destinations}
+            getOptionLabel={(option) => option?.name}
+            defaultValue={hotelData?.destination_id?._id || null}
+            value={hotelData?.destination_id || null}
+            onChange={(event, newValue) => setHotelData({ ...hotelData, destination_id: newValue })}
+            renderInput={(params, index) => (
+              <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
+            )}
           />
           <TextField
             label="Giá"
@@ -301,25 +353,19 @@ const HotelManagement = () => {
             fullWidth
             margin="dense"
           />
+          <Typography>Chọn vị trí khách sạn</Typography>
+          <MapApp locationLong={hotelData?.long} locationLat={hotelData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
+
           {!editId && (
             <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
           )}
-          <Autocomplete
-            options={destinations}
-            getOptionLabel={(option) => option?.name}
-            defaultValue={hotelData?.destination_id?._id || null}
-            value={hotelData?.destination_id || null}
-            onChange={(event, newValue) => setHotelData({ ...hotelData, destination_id: newValue })}
-            renderInput={(params, index) => (
-              <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
-            )}
-          />
+
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="secondary">
+          <Button variant='contained' onClick={handleClose} color="secondary">
             Hủy
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button variant='contained' onClick={handleSubmit} color="primary">
             Lưu
           </Button>
         </DialogActions>
@@ -341,10 +387,10 @@ const HotelManagement = () => {
         <DialogActions style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <input type="file" multiple accept="image/*" onChange={handleFileUpload} />
           <div>
-            <Button onClick={handleDeleteSelectedImages} color="secondary">
+            <Button variant='contained' onClick={handleDeleteSelectedImages} color="secondary">
               Xóa ảnh đã chọn
             </Button>
-            <Button onClick={handleUploadNewImages} color="primary">
+            <Button variant='contained' onClick={handleUploadNewImages} color="primary">
               Thêm ảnh
             </Button>
             <Button onClick={() => setImageDialogOpen(false)} color="primary">
@@ -353,6 +399,8 @@ const HotelManagement = () => {
           </div>
         </DialogActions>
       </Dialog>
+
+
 
       <ToastContainer></ToastContainer>
     </div>

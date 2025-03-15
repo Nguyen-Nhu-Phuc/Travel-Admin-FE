@@ -13,10 +13,11 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Typography,
   IconButton
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
-import { IconEye } from '@tabler/icons-react'
+import { IconEye, IconEdit, IconTrash, IconPlus } from '@tabler/icons-react'
 import restaurantApi from '../../api/restaurantApi'
 import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
@@ -24,6 +25,9 @@ import Backdrop from '@mui/material/Backdrop'
 import { toast, ToastContainer } from 'react-toastify'
 
 import CircularProgress from '@mui/material/CircularProgress'
+import { DeleteElements } from '../common/deleteElements.jsx'
+
+import MapApp from '../common/map.jsx'
 
 const RestaurantManagement = () => {
   const [restaurants, setRestaurants] = useState([])
@@ -40,13 +44,20 @@ const RestaurantManagement = () => {
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState([])
   const [check, setCheck] = useState(false)
+  const [id, setId] = useState('')
+  const [data, setData] = useState(null)
+  const [openDelete, setOpenDelete] = useState(false)
+  const [checkElement, setCheckElement] = useState(null)
+
+  const [long, setLong] = useState('')
+  const [lat, setLat] = useState('')
 
   useEffect(() => {
     fetchRestaurant()
     fetchDestinations()
   }, [])
 
-  useEffect(() => {}, [restaurantData])
+  useEffect(() => { }, [restaurantData])
 
   const fetchRestaurant = async () => {
     try {
@@ -103,9 +114,17 @@ const RestaurantManagement = () => {
       setCheck(true)
       const formData = new FormData()
 
+      if (!restaurantData.name) {
+        toast.warn('Vui lòng điền tên nhà hàng!')
+        setCheck(false)
+        return
+      }
+
       const jsonData = {
         name: restaurantData.name,
         description: restaurantData.description,
+        long: +long,
+        lat: +lat,
         destination_id: restaurantData.destination_id ? restaurantData.destination_id._id : null
       }
 
@@ -141,13 +160,11 @@ const RestaurantManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
-      try {
-        await restaurantApi.deleteRestaurant(id)
-        fetchRestaurant()
-      } catch (error) {
-        console.error('Lỗi khi xóa nhà hàng:', error)
-      }
+    try {
+      await restaurantApi.deleteRestaurant(id)
+      fetchRestaurant()
+    } catch (error) {
+      console.error('Lỗi khi xóa nhà hàng:', error)
     }
   }
 
@@ -156,20 +173,35 @@ const RestaurantManagement = () => {
     setImageDialogOpen(true)
   }
 
+
+
+  const handleOpenDelete = (id, data) => {
+    setCheckElement('restaurant')
+    setId(id)
+    setData(data)
+    setOpenDelete(true)
+  }
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false)
+  }
+
   return (
     <div>
       <h2>Danh Sách Nhà Hàng </h2>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+      <Button startIcon={<IconPlus ></IconPlus >} sx={{ marginBottom: '20px' }} variant="contained" color="primary" onClick={() => handleOpen()}>
         Thêm nhà hàng
       </Button>
+      {openDelete && <DeleteElements checkElement={checkElement} id={id} data={data} open={openDelete} handleClose={handleCloseDelete} onDelete={handleDelete} />}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Tên</TableCell>
-              <TableCell>Miêu tả</TableCell>
-              <TableCell>Hình ảnh</TableCell>
-              <TableCell>Hành động</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Miêu tả</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -177,7 +209,7 @@ const RestaurantManagement = () => {
               <TableRow key={restaurant._id}>
                 <TableCell>{restaurant.name}</TableCell>
                 <TableCell>{restaurant.description}</TableCell>
-                <TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   {restaurant.image && restaurant.image.length > 0 && (
                     <IconButton onClick={() => handleOpenImageDialog(restaurant.image.map((img) => img.url))}>
                       <IconEye />
@@ -185,11 +217,16 @@ const RestaurantManagement = () => {
                   )}
                 </TableCell>
                 <TableCell>
+                  {restaurant.long && restaurant.lat && (<Typography>Kinh độ: {restaurant.long}
+                    <br />
+                    Vĩ độ: {restaurant.lat}</Typography>)}
+                </TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   <Button color="primary" onClick={() => handleOpen(restaurant)}>
-                    Sửa
+                    <IconEdit stroke={2}></IconEdit>
                   </Button>
-                  <Button color="secondary" onClick={() => handleDelete(restaurant._id)}>
-                    Xóa
+                  <Button color="error" onClick={() => handleOpenDelete(restaurant._id, restaurant)}>
+                    <IconTrash stroke={2}></IconTrash>
                   </Button>
                 </TableCell>
               </TableRow>
@@ -198,7 +235,7 @@ const RestaurantManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog fullWidth open={open} onClose={handleClose}>
         <div>
           <Backdrop sx={(theme) => ({ color: '#199c51', zIndex: 999999 })} open={check}>
             <CircularProgress color="inherit" />
@@ -214,17 +251,6 @@ const RestaurantManagement = () => {
             fullWidth
             margin="dense"
           />
-          <TextField
-            label="Miêu tả"
-            name="description"
-            value={restaurantData.description}
-            onChange={handleChange}
-            fullWidth
-            margin="dense"
-          />
-          {!editId && (
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
-          )}
           <Autocomplete
             options={destinations}
             getOptionLabel={(option) => option?.name}
@@ -235,12 +261,26 @@ const RestaurantManagement = () => {
               <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
             )}
           />
+          <TextField
+            label="Miêu tả"
+            name="description"
+            value={restaurantData.description}
+            onChange={handleChange}
+            fullWidth
+            margin="dense"
+          />
+          <Typography>Chọn vị trí khách sạn</Typography>
+          <MapApp locationLong={restaurantData?.long} locationLat={restaurantData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
+          {!editId && (
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
+          )}
+
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="secondary">
+          <Button onClick={handleClose} variant='contained' color="secondary">
             Hủy
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button onClick={handleSubmit} variant='contained' color="primary">
             Lưu
           </Button>
         </DialogActions>
