@@ -13,10 +13,11 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  Typography
 } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
-import { IconEye } from '@tabler/icons-react'
+import { IconEye, IconEdit, IconTrash, IconPlus } from '@tabler/icons-react'
 import placeApi from '../../api/placeApi'
 import destinationsApi from '../../api/destinationApi'
 import Backdrop from '@mui/material/Backdrop'
@@ -24,6 +25,10 @@ import Backdrop from '@mui/material/Backdrop'
 import { toast, ToastContainer } from 'react-toastify'
 
 import CircularProgress from '@mui/material/CircularProgress'
+
+import { DeleteElements } from '../common/deleteElements.jsx'
+
+import MapApp from '../common/map.jsx'
 
 const PlaceManagement = () => {
   const [places, setPlaces] = useState([])
@@ -40,6 +45,14 @@ const PlaceManagement = () => {
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState([])
   const [check, setCheck] = useState(false)
+  const [id, setId] = useState('')
+  const [data, setData] = useState(null)
+  const [openDelete, setOpenDelete] = useState(false)
+
+  const [long, setLong] = useState('')
+  const [lat, setLat] = useState('')
+
+  const [checkElement, setCheckElement] = useState(null)
 
   const [selectedImagesToDelete, setSelectedImagesToDelete] = useState([]) // Lưu ID ảnh cần xóa
   const [newImages, setNewImages] = useState([]) // Lưu ảnh mới
@@ -49,7 +62,7 @@ const PlaceManagement = () => {
     fetchDestinations()
   }, [])
 
-  useEffect(() => {}, [placeData])
+  useEffect(() => { }, [placeData])
 
   const fetchPlaces = async () => {
     try {
@@ -104,8 +117,16 @@ const PlaceManagement = () => {
       setCheck(true)
       const formData = new FormData()
 
+      if (!placeData.name) {
+        toast.warn('Vui lòng điền tên địa điểm!')
+        setCheck(false)
+        return
+      }
+
       const jsonData = {
         name: placeData.name,
+        long: +long,
+        lat: +lat,
         description: placeData.description,
         destination_id: placeData.destination_id ? placeData.destination_id._id : null
       }
@@ -142,15 +163,12 @@ const PlaceManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa?')) {
-      try {
-        await placeApi.deletePlace(id)
-        fetchPlaces()
-        toast.success('Xóa khách điểm đến thành công!')
-      } catch (error) {
-        console.error('Lỗi khi xóa điểm đến:', error)
-        toast.error('Có lỗi xảy ra khi xóa điểm đến!')
-      }
+    try {
+      await placeApi.deletePlace(id)
+      fetchPlaces()
+    } catch (error) {
+      console.error('Lỗi khi xóa điểm đến:', error)
+      toast.error('Có lỗi xảy ra khi xóa điểm đến!')
     }
   }
 
@@ -215,20 +233,33 @@ const PlaceManagement = () => {
   }
   // ===========================
 
+  const handleOpenDelete = (id, data) => {
+    setCheckElement('place')
+    setId(id)
+    setData(data)
+    setOpenDelete(true)
+  }
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false)
+  }
+
   return (
     <div>
       <h2>Danh Sách Địa Điểm </h2>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+      <Button startIcon={<IconPlus ></IconPlus >} sx={{ marginBottom: '20px' }} variant="contained" color="primary" onClick={() => handleOpen()}>
         Thêm địa điểm
       </Button>
+      {openDelete && <DeleteElements checkElement={checkElement} id={id} data={data} open={openDelete} handleClose={handleCloseDelete} onDelete={handleDelete} />}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Tên</TableCell>
               <TableCell>Miêu tả</TableCell>
-              <TableCell>Hình ảnh</TableCell>
-              <TableCell>Hành động</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -236,7 +267,7 @@ const PlaceManagement = () => {
               <TableRow key={place._id}>
                 <TableCell>{place.name}</TableCell>
                 <TableCell>{place.description}</TableCell>
-                <TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   {place.image && place.image.length > 0 && (
                     <IconButton onClick={() => handleOpenImageDialog(place.image, place._id)}>
                       <IconEye />
@@ -244,11 +275,16 @@ const PlaceManagement = () => {
                   )}
                 </TableCell>
                 <TableCell>
+                  {place.long && place.lat && (<Typography>Kinh độ: {place.long}
+                    <br />
+                    Vĩ độ: {place.lat}</Typography>)}
+                </TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   <Button color="primary" onClick={() => handleOpen(place)}>
-                    Sửa
+                    <IconEdit stroke={2}></IconEdit>
                   </Button>
-                  <Button color="secondary" onClick={() => handleDelete(place._id)}>
-                    Xóa
+                  <Button color="error" onClick={() => handleOpenDelete(place._id, place)}>
+                    <IconTrash stroke={2}></IconTrash>
                   </Button>
                 </TableCell>
               </TableRow>
@@ -257,7 +293,7 @@ const PlaceManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog fullWidth open={open} onClose={handleClose}>
         <div>
           <Backdrop sx={(theme) => ({ color: '#199c51', zIndex: 999999 })} open={check}>
             <CircularProgress color="inherit" />
@@ -274,9 +310,6 @@ const PlaceManagement = () => {
             fullWidth
             margin="dense"
           />
-          {!editId && (
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
-          )}
           <Autocomplete
             options={destinations}
             getOptionLabel={(option) => option?.name}
@@ -287,6 +320,12 @@ const PlaceManagement = () => {
               <TextField key={index} {...params} label="Chọn địa điểm" margin="dense" fullWidth />
             )}
           />
+          <Typography>Chọn vị trí khách sạn</Typography>
+          <MapApp locationLong={placeData?.long} locationLat={placeData?.lat} setLocationLong={setLong} setLocationLat={setLat}></MapApp>
+          {!editId && (
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ marginTop: '10px' }} />
+          )}
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="secondary">
