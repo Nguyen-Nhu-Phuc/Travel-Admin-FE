@@ -263,7 +263,7 @@ const PlaceManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {places.map((place) => (
+            {places.length > 0 ? places.map((place) => (
               <TableRow key={place._id}>
                 <TableCell>{place.name}</TableCell>
                 <TableCell>{place.description}</TableCell>
@@ -288,7 +288,11 @@ const PlaceManagement = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={5} sx={{ textAlign: 'center' }}>Không có dữ liệu</TableCell>
+              </TableRow>
+            }
           </TableBody>
         </Table>
       </TableContainer>

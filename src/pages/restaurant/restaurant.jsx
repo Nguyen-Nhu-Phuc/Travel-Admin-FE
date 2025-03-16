@@ -205,7 +205,7 @@ const RestaurantManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {restaurants.map((restaurant) => (
+            {restaurants.length > 0 ? restaurants.map((restaurant) => (
               <TableRow key={restaurant._id}>
                 <TableCell>{restaurant.name}</TableCell>
                 <TableCell>{restaurant.description}</TableCell>
@@ -230,7 +230,11 @@ const RestaurantManagement = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={5} sx={{ textAlign: 'center' }}>Không có dữ liệu</TableCell>
+              </TableRow>
+            }
           </TableBody>
         </Table>
       </TableContainer>

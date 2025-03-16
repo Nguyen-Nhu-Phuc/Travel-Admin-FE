@@ -255,7 +255,7 @@ const DestinationManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {destinations?.map((destination, index) => (
+            {destinations.length > 0 ? destinations?.map((destination, index) => (
               <TableRow key={index}>
                 <TableCell>{destination.name}</TableCell>
                 <TableCell>{destination.description}</TableCell>
@@ -282,7 +282,12 @@ const DestinationManagement = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={5} style={{ textAlign: 'center' }}>Không có dữ liệu</TableCell>
+              </TableRow>
+
+            }
           </TableBody>
         </Table>
       </TableContainer>

@@ -78,7 +78,7 @@ const ScheduleManagement = () => {
     fetchDestinations()
   }, [])
 
-  useEffect(() => {}, [scheduleData])
+  useEffect(() => { }, [scheduleData])
 
   const fetchSchedule = async () => {
     try {
@@ -214,7 +214,7 @@ const ScheduleManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {schedules.map((schedule) => (
+            {schedules.length > 0 ? schedules.map((schedule) => (
               <TableRow key={schedule._id}>
                 <TableCell>{schedule.name}</TableCell>
                 <TableCell>{schedule.description}</TableCell>
@@ -226,7 +226,13 @@ const ScheduleManagement = () => {
                   </IconButton>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  Không có dữ liệu
+                </TableCell>
+              </TableRow>
+            }
           </TableBody>
         </Table>
       </TableContainer>
@@ -270,15 +276,14 @@ const ScheduleManagement = () => {
                             : schedule.type === 'place'
                               ? '#f3e5f5'
                               : '#f5f5f5',
-                      borderLeft: `5px solid ${
-                        schedule.type === 'restaurant'
-                          ? 'green'
-                          : schedule.type === 'hotel'
-                            ? 'blue'
-                            : schedule.type === 'place'
-                              ? 'purple'
-                              : 'gray'
-                      }`
+                      borderLeft: `5px solid ${schedule.type === 'restaurant'
+                        ? 'green'
+                        : schedule.type === 'hotel'
+                          ? 'blue'
+                          : schedule.type === 'place'
+                            ? 'purple'
+                            : 'gray'
+                        }`
                     }}
                   >
                     <CardContent sx={{ padding: 2, maxWidth: '300px', overflowX: 'auto' }}>

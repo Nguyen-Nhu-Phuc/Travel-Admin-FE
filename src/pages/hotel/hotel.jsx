@@ -268,7 +268,7 @@ const HotelManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {hotels.map((hotel) => (
+            {hotels.length > 0 ? hotels.map((hotel) => (
               <TableRow key={hotel._id}>
                 <TableCell>{hotel.name}</TableCell>
                 <TableCell>{hotel.address}</TableCell>
@@ -300,13 +300,17 @@ const HotelManagement = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={7} sx={{ textAlign: 'center' }}>Không có dữ liệu</TableCell>
+              </TableRow>
+            }
           </TableBody>
         </Table>
       </TableContainer>
       {openDelete && <DeleteElements checkElement={checkElement} id={id} data={data} open={openDelete} handleClose={handleCloseDelete} onDelete={handleDelete} />}
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} fullWidth onClose={handleClose}>
         <div>
           <Backdrop
             sx={(theme) => ({ color: '#199c51', zIndex: 999999 })}
