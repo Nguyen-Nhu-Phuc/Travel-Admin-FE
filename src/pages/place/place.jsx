@@ -258,12 +258,13 @@ const PlaceManagement = () => {
               <TableCell>Tên</TableCell>
               <TableCell>Miêu tả</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Thuộc địa điểm</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {places.map((place) => (
+            {places.length > 0 ? places.map((place) => (
               <TableRow key={place._id}>
                 <TableCell>{place.name}</TableCell>
                 <TableCell>{place.description}</TableCell>
@@ -274,6 +275,7 @@ const PlaceManagement = () => {
                     </IconButton>
                   )}
                 </TableCell>
+                <TableCell>{place.destination_id.name}</TableCell>
                 <TableCell>
                   {place.long && place.lat && (<Typography>Kinh độ: {place.long}
                     <br />
@@ -288,7 +290,11 @@ const PlaceManagement = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            )) :
+              <TableRow>
+                <TableCell colSpan={5} sx={{ textAlign: 'center' }}>Không có dữ liệu</TableCell>
+              </TableRow>
+            }
           </TableBody>
         </Table>
       </TableContainer>
