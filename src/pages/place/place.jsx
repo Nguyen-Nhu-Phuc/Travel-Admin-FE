@@ -258,6 +258,7 @@ const PlaceManagement = () => {
               <TableCell>Tên</TableCell>
               <TableCell>Miêu tả</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Thuộc địa điểm</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
             </TableRow>
@@ -274,6 +275,7 @@ const PlaceManagement = () => {
                     </IconButton>
                   )}
                 </TableCell>
+                <TableCell>{place.destination_id.name}</TableCell>
                 <TableCell>
                   {place.long && place.lat && (<Typography>Kinh độ: {place.long}
                     <br />

@@ -199,6 +199,7 @@ const RestaurantManagement = () => {
             <TableRow>
               <TableCell>Tên</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Miêu tả</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Thuộc địa điểm</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Vị trí</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hành động</TableCell>
@@ -209,8 +210,9 @@ const RestaurantManagement = () => {
               <TableRow key={restaurant._id}>
                 <TableCell>{restaurant.name}</TableCell>
                 <TableCell>{restaurant.description}</TableCell>
+                <TableCell>{restaurant.destination_id.name}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  {restaurant.image && restaurant.image.length > 0 && (
+                  {(
                     <IconButton onClick={() => handleOpenImageDialog(restaurant.image.map((img) => img.url))}>
                       <IconEye />
                     </IconButton>

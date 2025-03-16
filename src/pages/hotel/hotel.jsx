@@ -260,6 +260,7 @@ const HotelManagement = () => {
             <TableRow>
               <TableCell>Tên</TableCell>
               <TableCell>Địa chỉ</TableCell>
+              <TableCell sx={{ textAlign: 'center' }}>Thuộc địa điểm</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Giá</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Đánh giá</TableCell>
               <TableCell sx={{ textAlign: 'center' }}>Hình ảnh</TableCell>
@@ -270,14 +271,15 @@ const HotelManagement = () => {
           <TableBody>
             {hotels.length > 0 ? hotels.map((hotel) => (
               <TableRow key={hotel._id}>
-                <TableCell>{hotel.name}</TableCell>
-                <TableCell>{hotel.address}</TableCell>
+                <TableCell width={'25%'}>{hotel.name}</TableCell>
+                <TableCell width={'20%'}>{hotel.address}</TableCell>
+                <TableCell>{hotel.destination_id.name}</TableCell>
                 <TableCell >
                   {hotel.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(hotel.price) : 'Chưa cập nhật'}
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>{hotel.rating}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  {hotel.image && hotel.image.length > 0 && (
+                  {(
                     <IconButton onClick={() => handleOpenImageDialog(hotel.image, hotel._id)}>
                       <IconEye />
                     </IconButton>

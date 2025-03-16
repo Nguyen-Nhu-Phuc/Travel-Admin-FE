@@ -260,7 +260,7 @@ const DestinationManagement = () => {
                 <TableCell>{destination.name}</TableCell>
                 <TableCell>{destination.description}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>
-                  {destination?.image && destination?.image.length > 0 && (
+                  {(
                     <IconButton onClick={() => handleOpenImageDialog(destination.image, destination._id)}>
                       <IconEye />
                     </IconButton>
